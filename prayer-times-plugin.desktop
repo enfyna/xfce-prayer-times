@@ -1,0 +1,13 @@
+[Xfce Panel]
+Encoding=UTF-8
+Type=X-XFCE-PanelPlugin
+
+Icon=call-start
+Name=Prayer Times
+Comment=Quick prayer times plugin
+
+X-XFCE-Internal=true
+X-XFCE-Unique=true
+X-XFCE-API=2.0
+
+X-XFCE-Module=prayer-times-plugin
