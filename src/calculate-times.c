@@ -5,7 +5,7 @@
 
 #include "calculate-times.h"
 
-double calculate_julian_days(int Y, int M, int D, int H, int m, int s, int Z)
+static double calculate_julian_days(int Y, int M, int D, int H, int m, int s, int Z)
 {
     if (M <= 2) {
         Y -= 1;
@@ -17,14 +17,14 @@ double calculate_julian_days(int Y, int M, int D, int H, int m, int s, int Z)
     return JD;
 }
 
-double calculate_sun_declination(double jd)
+static double calculate_sun_declination(double jd)
 {
     double T = 2 * PI * (jd - J2000_EPOCH) / 365.25;
     double Delta = 0.37877 + 23.264 * sin((1 * 57.297 * T - 79.547) * DEG_TO_RAD) + 0.3812 * sin((2 * 57.297 * T - 82.682) * DEG_TO_RAD) + 0.17132 * sin((3 * 57.297 * T - 59.722) * DEG_TO_RAD);
     return Delta;
 }
 
-double calculate_equation_of_time(double jd)
+static double calculate_equation_of_time(double jd)
 {
     double U = (jd - J2000_EPOCH) / 36525;
     double L0 = 280.46607 + 36000.7698 * U;
@@ -34,13 +34,13 @@ double calculate_equation_of_time(double jd)
     return ET;
 }
 
-double calculate_transit_time(double LONGTITUDE, double ET, double Z)
+static double calculate_transit_time(double LONGTITUDE, double ET, double Z)
 {
     double TT = 12 + Z - (LONGTITUDE / 15) - (ET / 60);
     return TT;
 }
 
-sun_altitude_list* calculate_sun_altitudes(double DELTA, double LAT, double H,
+static sun_altitude_list* calculate_sun_altitudes(double DELTA, double LAT, double H,
     double SF)
 {
     sun_altitude_list* sa = malloc(sizeof(sun_altitude_list));
@@ -64,7 +64,7 @@ sun_altitude_list* calculate_sun_altitudes(double DELTA, double LAT, double H,
     return sa;
 }
 
-hour_angle_list* calculate_hour_angle(double DELTA, double LAT,
+static hour_angle_list* calculate_hour_angle(double DELTA, double LAT,
     sun_altitude_list* sa)
 {
     hour_angle_list* ha = malloc(sizeof(hour_angle_list));
@@ -145,9 +145,6 @@ prayer_time* get_next_prayer(prayer_times_list* pt_list)
     time_t now = time(NULL);
     struct tm date = *localtime(&now);
 
-    // 6.30.12
-    // 5.43.09
-    
     if (pt_list->SUNRISE->HOUR > date.tm_hour) {
         return pt_list->SUNRISE;
     }
