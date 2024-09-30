@@ -41,7 +41,7 @@ static double calculate_transit_time(double LONGTITUDE, double ET, double Z)
 }
 
 static sun_altitude_list* calculate_sun_altitudes(double DELTA, double LAT, double H,
-    double SF)
+    double SF, double FAJR_ANGLE, double ISHA_ANGLE)
 {
     sun_altitude_list* sa = malloc(sizeof(sun_altitude_list));
 
@@ -125,7 +125,7 @@ char* prayer_time_to_string(prayer_time* pt_time)
     return str;
 }
 
-prayer_times_list* get_prayer_times_list(struct tm* time, double LONG, double LAT, double elevation, int SF)
+prayer_times_list* get_prayer_times_list(struct tm* time, double LONG, double LAT, double elevation, int SF, double FAJR_ANGLE, double ISHA_ANGLE)
 {
     int TimeZone = time->tm_gmtoff / 3600;
     double jd = calculate_julian_days(
@@ -134,7 +134,7 @@ prayer_times_list* get_prayer_times_list(struct tm* time, double LONG, double LA
     double delta = calculate_sun_declination(jd);
     double et = calculate_equation_of_time(jd);
     double tt = calculate_transit_time(LONG, et, TimeZone);
-    sun_altitude_list* sa = calculate_sun_altitudes(delta, LAT, elevation, SF);
+    sun_altitude_list* sa = calculate_sun_altitudes(delta, LAT, elevation, SF, FAJR_ANGLE, ISHA_ANGLE);
     hour_angle_list* ha = calculate_hour_angle(delta, LAT, sa);
     prayer_times_list* pt = calculate_prayer_times(tt, ha);
     return pt;

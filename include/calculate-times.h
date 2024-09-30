@@ -6,8 +6,6 @@
 #define RAD_TO_DEG (180.0 / PI)
 #define J2000_EPOCH 2451545.0
 
-#define FAJR_ANGLE 18.0 // diyanet
-#define ISHA_ANGLE 17.0 // diyanet
 #define DESCEND_CORRECTION 0
 
 // degrees
@@ -46,5 +44,5 @@ typedef struct {
 char* prayer_time_to_string(prayer_time* time);
 prayer_time* double_time_to_time(double time);
 
-prayer_times_list* get_prayer_times_list(struct tm* time, double LONG, double LAT, double elevation, int SF);
+prayer_times_list* get_prayer_times_list(struct tm* time, double LONG, double LAT, double elevation, int SF, double FAJR_ANGLE, double ISHA_ANGLE);
 prayer_time* get_next_prayer(prayer_times_list* pt_list);
