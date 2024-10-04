@@ -27,7 +27,6 @@ typedef struct {
     gdouble shadow_factor;
     
     gint timeout;
-    prayer_time* pt_next;
     prayer_times_list* pt_list;
 } pt_plugin;
 

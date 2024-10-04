@@ -39,9 +39,6 @@ static void construct_pt_plugin(XfcePanelPlugin* plugin)
 
     prayer_times_list* ptl = get_prayer_times_list(
         &date, pt->longitude, pt->latitude, pt->elevation, pt->shadow_factor, pt->fajr_angle, pt->isha_angle);
-
-    prayer_time* next_prayer = get_next_prayer(ptl);
-    pt->pt_next = next_prayer;
     pt->pt_list = ptl;
 
     set_tooltip_text(pt);
@@ -110,14 +107,13 @@ static gboolean pt_update(gpointer data)
     time_t now = time(NULL);
     struct tm* date = localtime(&now);
 
-    int next_prayer_seconds = pt->pt_next->HOUR * 3600 + pt->pt_next->MINUTE * 60 + pt->pt_next->SECOND;
+    prayer_time* next_prayer = get_next_prayer(*date, pt->pt_list);
+
+    int next_prayer_seconds = next_prayer->HOUR * 3600 + next_prayer->MINUTE * 60 + next_prayer->SECOND;
     int current_seconds = date->tm_hour * 3600 + date->tm_min * 60 + date->tm_sec;
 
     int time_left = next_prayer_seconds - current_seconds;
-    if (time_left < 0) {
-        prayer_time* next_prayer = get_next_prayer(pt->pt_list);
-        pt->pt_next = next_prayer;
-    }
+
     int hour = time_left / 3600;
     int min = (time_left % 3600) / 60;
     int sec = time_left % 60;
