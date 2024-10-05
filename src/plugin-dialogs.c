@@ -1,9 +1,11 @@
-#include <gtk/gtk.h>
-#include <libxfce4ui/libxfce4ui.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 
-#include "glib-object.h"
+#include <gtk/gtk.h>
+#include <glib-object.h>
+#include <libxfce4ui/libxfce4ui.h>
+#include <libxfce4util/libxfce4util.h>
+
 #include "plugin-dialogs.h"
 
 void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
@@ -131,6 +133,7 @@ void pt_read(pt_plugin* pt)
 
     /* get the plugin config file location */
     file = xfce_panel_plugin_save_location(pt->plugin, TRUE);
+    g_warning("read file: %s", file);
 
     if (G_LIKELY(file != NULL)) {
         /* open the config file, readonly */
@@ -143,12 +146,14 @@ void pt_read(pt_plugin* pt)
             /* read the settings */
             pt->fajr_angle = xfce_rc_read_int_entry(rc, "fajr_angle", 18);
             pt->isha_angle = xfce_rc_read_int_entry(rc, "isha_angle", 17);
-            pt->latitude = xfce_rc_read_int_entry(rc, "latitude", 37.77);
-            pt->longitude = xfce_rc_read_int_entry(rc, "longitude", 29.08);
             pt->elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
             pt->shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
 
-            /* cleanup */
+            const gchar *lat = xfce_rc_read_entry(rc, "latitude", "37.77");
+            const gchar *lon = xfce_rc_read_entry(rc, "longitude", "29.08");
+            pt->latitude = atof(lat);
+            pt->longitude = atof(lon);
+
             xfce_rc_close(rc);
             return;
         }
@@ -186,9 +191,19 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         xfce_rc_write_int_entry(rc, "fajr_angle", pt->fajr_angle);
         xfce_rc_write_int_entry(rc, "isha_angle", pt->isha_angle);
         xfce_rc_write_int_entry(rc, "elevation", pt->elevation);
+        xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
+
         xfce_rc_write_int_entry(rc, "latitude", pt->latitude);
         xfce_rc_write_int_entry(rc, "longitude", pt->longitude);
-        xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
+
+        gchar *lat = malloc(sizeof(gchar) * 100);
+        gchar *lon = malloc(sizeof(gchar) * 100);
+
+        sprintf(lat, "%lf", pt->latitude);
+        sprintf(lon, "%lf", pt->longitude);
+
+        xfce_rc_write_entry(rc, "latitude", lat);
+        xfce_rc_write_entry(rc, "longitude", lon);
 
         /* close the rc file */
         xfce_rc_close(rc);

@@ -24,14 +24,6 @@ static void construct_pt_plugin(XfcePanelPlugin* plugin)
 {
     pt_plugin* pt = create_pt_plugin(plugin);
 
-    // double FAJR_ANGLE = 18.0; // diyanet
-    // double ISHA_ANGLE = 17.0; // diyanet
-    // double LAT = 37.77;
-    // double LONG = 29.08;
-    // int elevation = 350;
-    // int SF = 1;
-
-    /* read the user settings */
     pt_read(pt);
 
     time_t now = time(NULL);
