@@ -11,25 +11,44 @@ static double calculate_julian_days(int Y, int M, int D, int H, int m, int s, in
         Y -= 1;
         M += 12;
     }
-    int A = Y / 100;
-    int B = 2 - A + (A / 4);
-    double JD = 1720994.5 + (int)(365.25 * Y) + (int)(30.6001 * (M + 1)) + B + D + ((H * 3600 + m * 60 + s) / 86400.0) - (Z / 24.0);
+    int A = Y / 100.0;
+    int B = 2 - A + (A / 4.0);
+    double JD = 1720994.5 
+        + (int)(365.25 * Y) 
+        + (int)(30.6001 * (M + 1)) 
+        + B + D 
+        + ((H * 3600 + m * 60 + s) / 86400.0) 
+        - (Z / 24.0)
+    ;
     return JD;
 }
 
 static double calculate_sun_declination(double jd)
 {
     double T = 2 * PI * (jd - J2000_EPOCH) / 365.25;
-    double Delta = 0.37877 + 23.264 * sin((1 * 57.297 * T - 79.547) * DEG_TO_RAD) + 0.3812 * sin((2 * 57.297 * T - 82.682) * DEG_TO_RAD) + 0.17132 * sin((3 * 57.297 * T - 59.722) * DEG_TO_RAD);
+    double Delta = 0.37877 
+        + 23.264  * sin((1 * 57.297 * T - 79.547) * DEG_TO_RAD) 
+        + 0.3812  * sin((2 * 57.297 * T - 82.682) * DEG_TO_RAD) 
+        + 0.17132 * sin((3 * 57.297 * T - 59.722) * DEG_TO_RAD)
+    ;
     return Delta;
 }
 
 static double calculate_equation_of_time(double jd)
 {
     double U = (jd - J2000_EPOCH) / 36525;
+
     double L0 = 280.46607 + 36000.7698 * U;
     L0 *= DEG_TO_RAD;
-    double ET1000 = -(7146 - 62 * U) * cos(L0) - (29 + 5 * U) * cos(2 * L0) + (320 - 4 * U) * cos(3 * L0) - (1789 + 237 * U) * sin(L0) + (9934 - 14 * U) * sin(2 * L0) + (74 + 10 * U) * sin(3 * L0) - (212) * sin(4 * L0);
+
+    double ET1000 = 
+        - (7146 -  62 * U) * cos(    L0) 
+        - (  29 +   5 * U) * cos(2 * L0) 
+        + ( 320 -   4 * U) * cos(3 * L0) 
+        - (1789 + 237 * U) * sin(    L0) 
+        + (9934 -  14 * U) * sin(2 * L0) 
+        + (  74 +  10 * U) * sin(3 * L0) 
+        - ( 212          ) * sin(4 * L0);
     double ET = ET1000 / 1000;
     return ET;
 }
@@ -72,16 +91,20 @@ static hour_angle_list* calculate_hour_angle(double DELTA, double LAT,
     LAT *= DEG_TO_RAD;
     DELTA *= DEG_TO_RAD;
 
-    CHA = (sin(sa->ASR * DEG_TO_RAD) - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
+    CHA = (sin(sa->ASR * DEG_TO_RAD) 
+        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
     ha->ASR = acos(CHA) * RAD_TO_DEG;
 
-    CHA = (sin(sa->FAJR * DEG_TO_RAD) - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
+    CHA = (sin(sa->FAJR * DEG_TO_RAD) 
+        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
     ha->FAJR = acos(CHA) * RAD_TO_DEG;
 
-    CHA = (sin(sa->ISHA * DEG_TO_RAD) - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
+    CHA = (sin(sa->ISHA * DEG_TO_RAD) 
+        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
     ha->ISHA = acos(CHA) * RAD_TO_DEG;
 
-    CHA = (sin(sa->SUNRISE * DEG_TO_RAD) - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
+    CHA = (sin(sa->SUNRISE * DEG_TO_RAD) 
+        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
     ha->SUNRISE = acos(CHA) * RAD_TO_DEG;
     ha->MAGHRIB = ha->SUNRISE;
 
@@ -130,7 +153,8 @@ prayer_times_list* get_prayer_times_list(struct tm* time, double LONG, double LA
     int TimeZone = time->tm_gmtoff / 3600;
     double jd = calculate_julian_days(
         time->tm_year + 1900, time->tm_mon + 1, time->tm_mday,
-        time->tm_hour, time->tm_min, time->tm_sec, TimeZone);
+        time->tm_hour, time->tm_min, time->tm_sec, TimeZone
+    );
     double delta = calculate_sun_declination(jd);
     double et = calculate_equation_of_time(jd);
     double tt = calculate_transit_time(LONG, et, TimeZone);
