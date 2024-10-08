@@ -17,8 +17,9 @@ typedef struct {
     GtkWidget* ebox;
     GtkWidget* hvbox;
     GtkWidget* label;
+    GtkWidget* check;
 
-    /* sample settings */
+    /* settings */
     gdouble fajr_angle;
     gdouble isha_angle;
     gdouble latitude;

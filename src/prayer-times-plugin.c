@@ -3,9 +3,11 @@
 #include <libxfce4ui/libxfce4ui.h>
 #include <libxfce4util/libxfce4util.h>
 
+#include <glib-object.h>
 #include <gio/gio.h>
 #include <glib.h>
 #include <gtk/gtk.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -27,16 +29,16 @@ static void construct_pt_plugin(XfcePanelPlugin* plugin)
     pt_read(pt);
 
     time_t now = time(NULL);
-    struct tm date = *localtime(&now);
+    struct tm *date = localtime(&now);
 
-    prayer_times_list* ptl = get_prayer_times_list(
-        &date, pt->longitude, pt->latitude, pt->elevation, pt->shadow_factor, pt->fajr_angle, pt->isha_angle);
-    pt->pt_list = ptl;
+    pt->pt_list = get_prayer_times_list(
+        date, pt->longitude, pt->latitude, pt->elevation,
+        pt->shadow_factor, pt->fajr_angle, pt->isha_angle
+    );
 
     set_tooltip_text(pt);
 
     pt_update(pt);
-
     pt->timeout = g_timeout_add_seconds(1, pt_update, pt);
 }
 
@@ -52,7 +54,11 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
     gtk_container_add(GTK_CONTAINER(pt->ebox), pt->hvbox);
 
     pt->label = gtk_label_new("");
-    gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->label, TRUE, FALSE, 3);
+    gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->label, TRUE, FALSE, 5);
+
+    pt->check = gtk_check_button_new();
+    gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->check, TRUE, FALSE, 5);
+    gtk_widget_set_tooltip_text(GTK_WIDGET(pt->check), "Check if prayed");
 
     gtk_container_add(GTK_CONTAINER(plugin), pt->ebox);
     gtk_widget_show_all(GTK_WIDGET(plugin));
@@ -68,7 +74,6 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
 
     xfce_panel_plugin_menu_show_about(plugin);
     xfce_panel_plugin_menu_show_configure(plugin);
-
     return pt;
 }
 
@@ -96,10 +101,14 @@ static gboolean pt_update(gpointer data)
     pt_plugin* pt = data;
     char* label_text = malloc(sizeof(char) * 10);
 
+    gboolean prayed = gtk_toggle_button_get_active(
+        GTK_TOGGLE_BUTTON(pt->check)
+    );
+
     time_t now = time(NULL);
     struct tm* date = localtime(&now);
 
-    prayer_time* next_prayer = get_next_prayer(*date, pt->pt_list);
+    prayer_time* next_prayer = get_next_prayer(pt->pt_list);
 
     int next_prayer_seconds = next_prayer->HOUR * 3600 + next_prayer->MINUTE * 60 + next_prayer->SECOND;
     int current_seconds = date->tm_hour * 3600 + date->tm_min * 60 + date->tm_sec;
@@ -113,8 +122,14 @@ static gboolean pt_update(gpointer data)
     sprintf(label_text, "%02d:%02d:%02d", hour, min, sec);
     gtk_label_set_text((GtkLabel*)pt->label, label_text);
 
-    if (time_left % 600 == 0) {
+    if (!prayed && time_left % 600 == 0) {
         send_notification(label_text);
+    }
+
+    if (time_left <= 0) {
+        gtk_toggle_button_set_active(
+            GTK_TOGGLE_BUTTON(pt->check), FALSE
+        );
     }
 
     free(label_text);
