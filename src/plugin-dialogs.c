@@ -2,9 +2,11 @@
 #include <stdio.h>
 
 #include <gtk/gtk.h>
+#include <glib.h>
 #include <glib-object.h>
 #include <libxfce4ui/libxfce4ui.h>
 #include <libxfce4util/libxfce4util.h>
+#include <string.h>
 
 #include "plugin-dialogs.h"
 
@@ -14,59 +16,65 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
 
     GtkWidget* dialog = xfce_titled_dialog_new_with_mixed_buttons(
         _("Prayer Times"),
-        GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(plugin))),
+        NULL, // GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(plugin))),
         GTK_DIALOG_DESTROY_WITH_PARENT,
         "gtk-help", "Help", GTK_RESPONSE_HELP,
         "gtk-save", "Save", GTK_RESPONSE_APPLY,
-        NULL);
+        NULL
+    );
 
-    GtkWidget* container = gtk_dialog_get_content_area(GTK_DIALOG(dialog));
-
+    GtkWidget* container = gtk_dialog_get_content_area(
+        GTK_DIALOG(dialog)
+    );
     GtkWidget* input_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
 
-    // Fixed label width
-    const int label_width = 100;
-
-    // Create labels and entries in a loop
+    const int label_width = 200;
     const char* labels[] = {
         "Latitude (degrees)", "Longitude (degrees)", "Elevation (m)",
         "Shadow Factor [1, 2]", "Isha Angle (degrees)", "Fajr Angle (degrees)"
     };
+
     gdouble* settings[] = {
         &pt->latitude, &pt->longitude, &pt->elevation,
         &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle
     };
-    GtkWidget* entries[6];
-    GPtrArray* entry_array = g_ptr_array_new_with_free_func(g_object_unref); // Automatically unrefs the widgets when the array is freed
+
+    GPtrArray* entry_array = g_ptr_array_new(); 
+
     char* dts = malloc(sizeof(char) * 10);
     for (int i = 0; i < 6; i++) {
-        GtkWidget* input_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 10);
+        GtkWidget* input_row = gtk_box_new(
+            GTK_ORIENTATION_HORIZONTAL, 10
+        );
 
         GtkWidget* label = gtk_label_new(labels[i]);
         gtk_widget_set_size_request(label, label_width, -1);
         gtk_label_set_xalign(GTK_LABEL(label), -1);
 
         GtkWidget* entry = gtk_entry_new();
-        sprintf(dts, "%.2lf", *settings[i]);
+        sprintf(dts, i < 2 ? "%.2lf" : "%.0f", *settings[i]);
         gtk_entry_set_text(GTK_ENTRY(entry), dts);
+        gtk_entry_set_alignment(GTK_ENTRY(entry), GTK_ALIGN_END);
 
-        gtk_box_pack_start(GTK_BOX(input_row), label, FALSE, FALSE, 0);
-        gtk_box_pack_start(GTK_BOX(input_row), entry, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(input_row), label, TRUE, TRUE, 0);
+        gtk_box_pack_start(GTK_BOX(input_row), entry, FALSE, FALSE, 0);
 
         gtk_box_pack_start(GTK_BOX(input_box), input_row, FALSE, FALSE, 2);
         g_ptr_array_add(entry_array, entry);
     }
-    g_object_set_data_full(G_OBJECT(plugin), "entry_array", entry_array, (GDestroyNotify)g_ptr_array_unref);
-    g_object_set_data(G_OBJECT(plugin), "entries", entries);
+    g_object_set_data_full(G_OBJECT(plugin),
+        "entry_array", entry_array, (GDestroyNotify)g_ptr_array_unref
+    );
     free(dts);
 
-    gtk_box_pack_start(GTK_BOX(container), input_box, TRUE, TRUE, 10);
+    gtk_box_pack_start(GTK_BOX(container), input_box, TRUE, TRUE, 12);
     gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
     gtk_window_set_icon_name(GTK_WINDOW(dialog), "xfce4-settings");
 
     g_object_set_data(G_OBJECT(plugin), "dialog", dialog);
     g_signal_connect(G_OBJECT(dialog), "response",
-        G_CALLBACK(pt_configure_response), pt);
+        G_CALLBACK(pt_configure_response), pt
+    );
 
     gtk_widget_show_all(dialog);
 }
@@ -77,50 +85,43 @@ void pt_configure_response(
     gboolean result;
 
     if (response == GTK_RESPONSE_HELP) {
-        /* show help */
-        result = g_spawn_command_line_async("exo-open --launch WebBrowser " PLUGIN_WEBSITE, NULL);
+        result = g_spawn_command_line_async(
+            "exo-open --launch WebBrowser " PLUGIN_WEBSITE,
+            NULL
+        );
         if (G_UNLIKELY(result == FALSE))
-            g_warning(_("Unable to open the following url: %s"), PLUGIN_WEBSITE);
-
+            g_warning(_("Unable to open the following url: %s"),
+                PLUGIN_WEBSITE
+            );
     } else if (response == GTK_RESPONSE_APPLY) {
         gdouble* settings[] = {
             &pt->latitude, &pt->longitude, &pt->elevation,
             &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle
         };
-        GPtrArray* entry_array = g_object_get_data(G_OBJECT(pt->plugin), "entry_array");
-
-        if (entry_array == NULL) {
-            g_warning("entry_array is NULL");
-            return;
-        }
-
+        GPtrArray* entry_array = g_object_get_data(
+            G_OBJECT(pt->plugin), "entry_array"
+        );
         for (guint i = 0; i < entry_array->len; i++) {
-            GtkEntry* entry = GTK_ENTRY(g_ptr_array_index(entry_array, i));
-            if (!GTK_IS_ENTRY(entry)) {
-                g_warning("Item %d is not a GtkEntry", i);
-                continue;
-            }
-
+            GtkEntry* entry = GTK_ENTRY(
+                g_ptr_array_index(entry_array, i)
+            );
             const gchar* input = gtk_entry_get_text(entry);
-            g_warning("%s : input", input);
             gdouble res = atof(input);
             *settings[i] = res;
         }
-        g_warning(_("finally"));
-
         time_t now = time(NULL);
         struct tm date = *localtime(&now);
 
         prayer_times_list* ptl = get_prayer_times_list(
             &date, pt->longitude, pt->latitude, pt->elevation, pt->shadow_factor, pt->fajr_angle, pt->isha_angle);
-
-        prayer_time* next_prayer = get_next_prayer(ptl);
-        pt->pt_next = next_prayer;
         pt->pt_list = ptl;
+
+        set_tooltip_text(pt);
+        
+        g_ptr_array_unref(entry_array);
     }
     /* remove the dialog data from the plugin */
     g_object_set_data(G_OBJECT(pt->plugin), "dialog", NULL);
-    g_object_set_data(G_OBJECT(pt->plugin), "entries", NULL);
     xfce_panel_plugin_unblock_menu(pt->plugin);
     pt_save(pt->plugin, pt);
     gtk_widget_destroy(dialog);
@@ -133,7 +134,7 @@ void pt_read(pt_plugin* pt)
 
     /* get the plugin config file location */
     file = xfce_panel_plugin_save_location(pt->plugin, TRUE);
-    g_warning("read file: %s", file);
+    g_info("config file: %s", file);
 
     if (G_LIKELY(file != NULL)) {
         /* open the config file, readonly */
@@ -192,9 +193,6 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         xfce_rc_write_int_entry(rc, "isha_angle", pt->isha_angle);
         xfce_rc_write_int_entry(rc, "elevation", pt->elevation);
         xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
-
-        xfce_rc_write_int_entry(rc, "latitude", pt->latitude);
-        xfce_rc_write_int_entry(rc, "longitude", pt->longitude);
 
         gchar *lat = malloc(sizeof(gchar) * 100);
         gchar *lon = malloc(sizeof(gchar) * 100);

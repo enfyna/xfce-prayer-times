@@ -33,7 +33,10 @@ typedef struct {
     prayer_times_list* pt_list;
 } pt_plugin;
 
+void set_tooltip_text(pt_plugin* pt);
+
 void pt_about();
+void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt);
 
 void pt_configure_response(GtkWidget* dialog, gint response, pt_plugin* pt);
 void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt);

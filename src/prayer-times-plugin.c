@@ -14,8 +14,6 @@
 
 #include "plugin-dialogs.h"
 
-void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt);
-static void set_tooltip_text(pt_plugin* pt);
 static gboolean pt_update(gpointer data);
 static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin);
 
@@ -134,7 +132,7 @@ static gboolean pt_update(gpointer data)
     return TRUE;
 }
 
-static void set_tooltip_text(pt_plugin* pt)
+void set_tooltip_text(pt_plugin* pt)
 {
     char* tooltip_text = malloc(sizeof(char) * 400);
 
