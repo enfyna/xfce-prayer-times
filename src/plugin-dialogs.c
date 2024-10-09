@@ -41,7 +41,7 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
 
     GPtrArray* entry_array = g_ptr_array_new(); 
 
-    char* dts = malloc(sizeof(char) * 10);
+    char dts[10];
     for (int i = 0; i < 6; i++) {
         GtkWidget* input_row = gtk_box_new(
             GTK_ORIENTATION_HORIZONTAL, 10
@@ -65,8 +65,6 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
     g_object_set_data_full(G_OBJECT(plugin),
         "entry_array", entry_array, (GDestroyNotify)g_ptr_array_unref
     );
-    free(dts);
-
     gtk_box_pack_start(GTK_BOX(container), input_box, TRUE, TRUE, 12);
     gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);
     gtk_window_set_icon_name(GTK_WINDOW(dialog), "xfce4-settings");
@@ -194,8 +192,8 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         xfce_rc_write_int_entry(rc, "elevation", pt->elevation);
         xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
 
-        gchar *lat = malloc(sizeof(gchar) * 100);
-        gchar *lon = malloc(sizeof(gchar) * 100);
+        gchar lat[100];
+        gchar lon[100];
 
         sprintf(lat, "%lf", pt->latitude);
         sprintf(lon, "%lf", pt->longitude);

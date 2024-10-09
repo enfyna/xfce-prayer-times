@@ -141,10 +141,11 @@ prayer_times_list* calculate_prayer_times(double TT, hour_angle_list* ha)
 
 char* prayer_time_to_string(prayer_time* pt_time)
 {
-    char* str = malloc(sizeof(char) * 10);
-
-    sprintf(str, "%02d:%02d:%02d", pt_time->HOUR, pt_time->MINUTE, pt_time->SECOND);
-
+    char* str = malloc(sizeof(char) * 9);
+    if (str == NULL) { return NULL; }
+    sprintf(str, "%02d:%02d:%02d",
+        pt_time->HOUR, pt_time->MINUTE, pt_time->SECOND
+    );
     return str;
 }
 

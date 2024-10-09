@@ -47,7 +47,7 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
     pt_plugin* pt = g_slice_new0(pt_plugin);
     pt->plugin = plugin;
 
-    pt->app  = g_application_new("prayer.times", G_APPLICATION_DEFAULT_FLAGS);
+    pt->app = g_application_new("prayer.times", G_APPLICATION_DEFAULT_FLAGS);
     g_application_register(pt->app, NULL, NULL);
 
     pt->ebox = gtk_event_box_new();
@@ -95,7 +95,7 @@ static void send_notification(pt_plugin* pt, char* time_left)
 static gboolean pt_update(gpointer data)
 {
     pt_plugin* pt = data;
-    char* label_text = malloc(sizeof(char) * 10);
+    char label_text[9];
 
     gboolean prayed = gtk_toggle_button_get_active(
         GTK_TOGGLE_BUTTON(pt->check)
@@ -127,32 +127,42 @@ static gboolean pt_update(gpointer data)
             GTK_TOGGLE_BUTTON(pt->check), FALSE
         );
     }
-
-    free(label_text);
     return TRUE;
 }
 
 void set_tooltip_text(pt_plugin* pt)
 {
-    char* tooltip_text = malloc(sizeof(char) * 400);
+    char tooltip_text[200];
 
     time_t now = time(NULL);
     struct tm date = *localtime(&now);
     prayer_times_list* ptl = pt->pt_list;
 
+    char* fjr_str = prayer_time_to_string(ptl->FAJR);
+    char* sun_str = prayer_time_to_string(ptl->SUNRISE);
+    char* zhr_str = prayer_time_to_string(ptl->ZUHR);
+    char* asr_str = prayer_time_to_string(ptl->ASR);
+    char* mrb_str = prayer_time_to_string(ptl->MAGHRIB);
+    char* ish_str = prayer_time_to_string(ptl->ISHA);
+
     sprintf(tooltip_text,
-        "%02d.%02d.%d +%d \n"
-        "%2s : Fajr\n"
-        "%2s : Sunrise \n"
-        "%2s : Zuhr\n"
-        "%2s : Asr \n"
-        "%2s : Maghrib\n"
-        "%2s : Isha  ",
-        date.tm_mday, date.tm_mon + 1, date.tm_year + 1900, (int)date.tm_gmtoff / 3600,
-        prayer_time_to_string(ptl->FAJR), prayer_time_to_string(ptl->SUNRISE),
-        prayer_time_to_string(ptl->ZUHR), prayer_time_to_string(ptl->ASR),
-        prayer_time_to_string(ptl->MAGHRIB), prayer_time_to_string(ptl->ISHA));
+        "%02d.%02d.%d %s \n"
+        "----------------\n"
+        "%2s : Fajr      \n"
+        "%2s : Sunrise   \n"
+        "%2s : Zuhr      \n"
+        "%2s : Asr       \n"
+        "%2s : Maghrib   \n"
+        "%2s : Isha        ",
+        date.tm_mday, date.tm_mon + 1, date.tm_year + 1900, date.tm_zone,
+        fjr_str, sun_str, zhr_str, asr_str, mrb_str, ish_str
+    );
 
     gtk_widget_set_tooltip_text(GTK_WIDGET(pt->hvbox), tooltip_text);
-    free(tooltip_text);
+    free(fjr_str);
+    free(sun_str);
+    free(zhr_str);
+    free(asr_str);
+    free(mrb_str);
+    free(ish_str);
 }
