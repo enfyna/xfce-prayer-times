@@ -13,6 +13,8 @@
 typedef struct {
     XfcePanelPlugin* plugin;
 
+    GApplication* app;
+
     /* panel widgets */
     GtkWidget* ebox;
     GtkWidget* hvbox;

@@ -49,6 +49,9 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
     pt_plugin* pt = g_slice_new0(pt_plugin);
     pt->plugin = plugin;
 
+    pt->app  = g_application_new("prayer.times", G_APPLICATION_DEFAULT_FLAGS);
+    g_application_register(pt->app, NULL, NULL);
+
     pt->ebox = gtk_event_box_new();
     pt->hvbox = gtk_box_new(orientation, 2);
     gtk_container_add(GTK_CONTAINER(pt->ebox), pt->hvbox);
@@ -77,12 +80,8 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
     return pt;
 }
 
-static void send_notification(char* time_left)
+static void send_notification(pt_plugin* pt, char* time_left)
 {
-    GApplication* application = g_application_new("prayer.times", G_APPLICATION_DEFAULT_FLAGS);
-
-    g_application_register(application, NULL, NULL);
-
     GNotification* notification = g_notification_new("Time left to next prayer:");
 
     g_notification_set_body(notification, time_left);
@@ -90,10 +89,9 @@ static void send_notification(char* time_left)
     GIcon* icon = g_themed_icon_new("call-start");
     g_notification_set_icon(notification, icon);
 
-    g_application_send_notification(application, NULL, notification);
+    g_application_send_notification(pt->app, NULL, notification);
     g_object_unref(icon);
     g_object_unref(notification);
-    g_object_unref(application);
 }
 
 static gboolean pt_update(gpointer data)
@@ -123,7 +121,7 @@ static gboolean pt_update(gpointer data)
     gtk_label_set_text((GtkLabel*)pt->label, label_text);
 
     if (!prayed && time_left % 600 == 0) {
-        send_notification(label_text);
+        send_notification(pt, label_text);
     }
 
     if (time_left <= 0) {

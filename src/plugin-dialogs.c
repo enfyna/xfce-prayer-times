@@ -241,6 +241,9 @@ void pt_free(XfcePanelPlugin* plugin, pt_plugin* pt)
     if (G_LIKELY(pt->pt_list != NULL))
         g_free(pt->pt_list);
 
+    if (G_LIKELY(pt->app != NULL))
+        g_object_unref(pt->app);
+
     /* free the plugin structure */
     g_slice_free(pt_plugin, pt);
 }
