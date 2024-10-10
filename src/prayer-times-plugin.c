@@ -118,7 +118,7 @@ static gboolean pt_update(gpointer data)
     sprintf(label_text, "%02d:%02d:%02d", hour, min, sec);
     gtk_label_set_text((GtkLabel*)pt->label, label_text);
 
-    if (!prayed && time_left % 600 == 0) {
+    if (!prayed && time_left % (int)pt->not_interval == 0) {
         send_notification(pt, label_text);
     }
 

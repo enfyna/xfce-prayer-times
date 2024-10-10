@@ -31,18 +31,20 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
     const int label_width = 200;
     const char* labels[] = {
         "Latitude (degrees)", "Longitude (degrees)", "Elevation (m)",
-        "Shadow Factor [1, 2]", "Isha Angle (degrees)", "Fajr Angle (degrees)"
+        "Shadow Factor [1, 2]", "Isha Angle (degrees)", "Fajr Angle (degrees)",
+        "Notification Interval (seconds)"
     };
 
     gdouble* settings[] = {
         &pt->latitude, &pt->longitude, &pt->elevation,
-        &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle
+        &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle,
+        &pt->not_interval
     };
 
     GPtrArray* entry_array = g_ptr_array_new(); 
 
     char dts[10];
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 7; i++) {
         GtkWidget* input_row = gtk_box_new(
             GTK_ORIENTATION_HORIZONTAL, 10
         );
@@ -94,7 +96,8 @@ void pt_configure_response(
     } else if (response == GTK_RESPONSE_APPLY) {
         gdouble* settings[] = {
             &pt->latitude, &pt->longitude, &pt->elevation,
-            &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle
+            &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle,
+            &pt->not_interval
         };
         GPtrArray* entry_array = g_object_get_data(
             G_OBJECT(pt->plugin), "entry_array"
@@ -115,8 +118,6 @@ void pt_configure_response(
         pt->pt_list = ptl;
 
         set_tooltip_text(pt);
-        
-        g_ptr_array_unref(entry_array);
     }
     /* remove the dialog data from the plugin */
     g_object_set_data(G_OBJECT(pt->plugin), "dialog", NULL);
@@ -143,6 +144,7 @@ void pt_read(pt_plugin* pt)
 
         if (G_LIKELY(rc != NULL)) {
             /* read the settings */
+            pt->not_interval = xfce_rc_read_int_entry(rc, "not_interval", 600);
             pt->fajr_angle = xfce_rc_read_int_entry(rc, "fajr_angle", 18);
             pt->isha_angle = xfce_rc_read_int_entry(rc, "isha_angle", 17);
             pt->elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
@@ -165,6 +167,7 @@ void pt_read(pt_plugin* pt)
     pt->longitude = 29.08;
     pt->elevation = 350;
     pt->shadow_factor = 1;
+    pt->not_interval = 600;
 }
 
 void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
@@ -187,6 +190,7 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
     if (G_LIKELY(rc != NULL)) {
         /* save the settings */
         DBG(".");
+        xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
         xfce_rc_write_int_entry(rc, "fajr_angle", pt->fajr_angle);
         xfce_rc_write_int_entry(rc, "isha_angle", pt->isha_angle);
         xfce_rc_write_int_entry(rc, "elevation", pt->elevation);

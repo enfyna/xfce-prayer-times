@@ -28,6 +28,7 @@ typedef struct {
     gdouble longitude;
     gdouble elevation;
     gdouble shadow_factor;
+    gdouble not_interval;
     
     gint timeout;
     prayer_times_list* pt_list;
