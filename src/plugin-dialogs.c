@@ -30,14 +30,16 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
 
     const int label_width = 200;
     const char* labels[] = {
-        "Latitude (degrees)", "Longitude (degrees)", "Elevation (m)",
-        "Shadow Factor [1, 2]", "Isha Angle (degrees)", "Fajr Angle (degrees)",
+        "Isha Angle (degrees)", "Fajr Angle (degrees)",
+        "Latitude (degrees)", "Longitude (degrees)", 
+        "Shadow Factor [1, 2]", "Elevation (m)",
         "Notification Interval (seconds)"
     };
 
     gdouble* settings[] = {
-        &pt->latitude, &pt->longitude, &pt->elevation,
-        &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle,
+        &pt->isha_angle, &pt->fajr_angle,
+        &pt->latitude, &pt->longitude, 
+        &pt->shadow_factor, &pt->elevation,
         &pt->not_interval
     };
 
@@ -54,7 +56,7 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         gtk_label_set_xalign(GTK_LABEL(label), -1);
 
         GtkWidget* entry = gtk_entry_new();
-        sprintf(dts, i < 2 ? "%.2lf" : "%.0f", *settings[i]);
+        sprintf(dts, i < 4 ? "%.2lf" : "%.0f", *settings[i]);
         gtk_entry_set_text(GTK_ENTRY(entry), dts);
         gtk_entry_set_alignment(GTK_ENTRY(entry), GTK_ALIGN_END);
 
@@ -95,8 +97,9 @@ void pt_configure_response(
             );
     } else if (response == GTK_RESPONSE_APPLY) {
         gdouble* settings[] = {
-            &pt->latitude, &pt->longitude, &pt->elevation,
-            &pt->shadow_factor, &pt->isha_angle, &pt->fajr_angle,
+            &pt->isha_angle, &pt->fajr_angle,
+            &pt->latitude, &pt->longitude, 
+            &pt->shadow_factor, &pt->elevation,
             &pt->not_interval
         };
         GPtrArray* entry_array = g_object_get_data(
@@ -145,10 +148,13 @@ void pt_read(pt_plugin* pt)
         if (G_LIKELY(rc != NULL)) {
             /* read the settings */
             pt->not_interval = xfce_rc_read_int_entry(rc, "not_interval", 600);
-            pt->fajr_angle = xfce_rc_read_int_entry(rc, "fajr_angle", 18);
-            pt->isha_angle = xfce_rc_read_int_entry(rc, "isha_angle", 17);
             pt->elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
             pt->shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
+
+            const gchar *fajr = xfce_rc_read_entry(rc, "fajr_angle", "18");
+            const gchar *isha = xfce_rc_read_entry(rc, "isha_angle", "17");
+            pt->fajr_angle = atof(fajr);
+            pt->isha_angle = atof(isha);
 
             const gchar *lat = xfce_rc_read_entry(rc, "latitude", "37.77");
             const gchar *lon = xfce_rc_read_entry(rc, "longitude", "29.08");
@@ -191,10 +197,17 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         /* save the settings */
         DBG(".");
         xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
-        xfce_rc_write_int_entry(rc, "fajr_angle", pt->fajr_angle);
-        xfce_rc_write_int_entry(rc, "isha_angle", pt->isha_angle);
         xfce_rc_write_int_entry(rc, "elevation", pt->elevation);
         xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
+
+        gchar fajr[100];
+        gchar isha[100];
+
+        sprintf(fajr, "%lf", pt->fajr_angle);
+        sprintf(isha, "%lf", pt->isha_angle);
+
+        xfce_rc_write_entry(rc, "fajr_angle", fajr);
+        xfce_rc_write_entry(rc, "isha_angle", isha);
 
         gchar lat[100];
         gchar lon[100];
@@ -223,7 +236,8 @@ void pt_about()
         "website", PLUGIN_WEBSITE,
         "copyright", "Copyright \xc2\xa9 2024",
         "authors", auth,
-        NULL);
+        NULL
+    );
 }
 
 void pt_free(XfcePanelPlugin* plugin, pt_plugin* pt)
