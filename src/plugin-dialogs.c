@@ -30,10 +30,10 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
 
     const int label_width = 200;
     const char* labels[] = {
-        "Isha Angle (degrees)", "Fajr Angle (degrees)",
-        "Latitude (degrees)", "Longitude (degrees)", 
-        "Shadow Factor [1, 2]", "Elevation (m)",
-        "Notification Interval (seconds)"
+        _("Isha Angle (degrees)"), _("Fajr Angle (degrees)"),
+        _("Latitude (degrees)"), _("Longitude (degrees)"), 
+        _("Shadow Factor [1, 2]"), _("Elevation (m)"),
+        _("Notification Interval (seconds)")
     };
 
     gdouble* settings[] = {

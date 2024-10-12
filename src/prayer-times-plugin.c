@@ -59,7 +59,7 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
 
     pt->check = gtk_check_button_new();
     gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->check, TRUE, FALSE, 5);
-    gtk_widget_set_tooltip_text(GTK_WIDGET(pt->check), "Check if prayed");
+    gtk_widget_set_tooltip_text(GTK_WIDGET(pt->check), _("Check if prayed"));
 
     gtk_container_add(GTK_CONTAINER(plugin), pt->ebox);
     gtk_widget_show_all(GTK_WIDGET(plugin));
@@ -80,7 +80,7 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
 
 static void send_notification(pt_plugin* pt, char* time_left)
 {
-    GNotification* notification = g_notification_new("Time left to next prayer:");
+    GNotification* notification = g_notification_new(_("Time left to next prayer:"));
 
     g_notification_set_body(notification, time_left);
 
@@ -145,7 +145,7 @@ void set_tooltip_text(pt_plugin* pt)
     char* mrb_str = prayer_time_to_string(ptl->MAGHRIB);
     char* ish_str = prayer_time_to_string(ptl->ISHA);
 
-    sprintf(tooltip_text,
+    sprintf(tooltip_text, _(
         "%02d.%02d.%d %s \n"
         "----------------\n"
         "%2s : Fajr      \n"
@@ -153,7 +153,7 @@ void set_tooltip_text(pt_plugin* pt)
         "%2s : Zuhr      \n"
         "%2s : Asr       \n"
         "%2s : Maghrib   \n"
-        "%2s : Isha        ",
+        "%2s : Isha        "),
         date.tm_mday, date.tm_mon + 1, date.tm_year + 1900, date.tm_zone,
         fjr_str, sun_str, zhr_str, asr_str, mrb_str, ish_str
     );
