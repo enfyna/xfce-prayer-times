@@ -8,7 +8,7 @@
 
 #define PACKAGE_VERSION "1.0"
 #define PACKAGE_NAME "PrayerTimes"
-#define PLUGIN_WEBSITE "https://github.com/enfyna"
+#define PLUGIN_WEBSITE "https://github.com/enfyna/xfce-prayer-times"
 
 typedef struct {
     XfcePanelPlugin* plugin;
