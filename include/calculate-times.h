@@ -44,5 +44,5 @@ typedef struct {
 char* prayer_time_to_string(prayer_time* time);
 prayer_time* double_time_to_time(double time);
 
-prayer_times_list* get_prayer_times_list(struct tm* time, double LONG, double LAT, double elevation, int SF, double FAJR_ANGLE, double ISHA_ANGLE);
+prayer_times_list* get_prayer_times_list(double LONG, double LAT, double elevation, int SF, double FAJR_ANGLE, double ISHA_ANGLE);
 prayer_time* get_next_prayer(prayer_times_list* pt_list);

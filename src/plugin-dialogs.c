@@ -113,11 +113,8 @@ void pt_configure_response(
             gdouble res = atof(input);
             *settings[i] = res;
         }
-        time_t now = time(NULL);
-        struct tm date = *localtime(&now);
-
         prayer_times_list* ptl = get_prayer_times_list(
-            &date, pt->longitude, pt->latitude, pt->elevation, pt->shadow_factor, pt->fajr_angle, pt->isha_angle);
+            pt->longitude, pt->latitude, pt->elevation, pt->shadow_factor, pt->fajr_angle, pt->isha_angle);
         pt->pt_list = ptl;
 
         set_tooltip_text(pt);

@@ -26,11 +26,8 @@ static void construct_pt_plugin(XfcePanelPlugin* plugin)
 
     pt_read(pt);
 
-    time_t now = time(NULL);
-    struct tm *date = localtime(&now);
-
     pt->pt_list = get_prayer_times_list(
-        date, pt->longitude, pt->latitude, pt->elevation,
+        pt->longitude, pt->latitude, pt->elevation,
         pt->shadow_factor, pt->fajr_angle, pt->isha_angle
     );
 
