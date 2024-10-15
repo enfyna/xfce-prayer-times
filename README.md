@@ -45,7 +45,11 @@
 > [!NOTE]
 > You could move the files there but if you want to make changes creating symlink is more convenient.
 
-4. Add the plugin to your panel.
+4. Restart xfce4-panel.
+
+       xfce4-panel -r
+
+5. Add the plugin to your panel.
 
     1. Go to **Settings>Panel>Items**.
     2. Click the **+ Add** button.
