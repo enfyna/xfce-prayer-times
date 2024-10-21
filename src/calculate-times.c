@@ -179,6 +179,8 @@ prayer_times_list* get_prayer_times_list(
     sun_altitude_list* sa = calculate_sun_altitudes(delta, LAT, elevation, SF, FAJR_ANGLE, ISHA_ANGLE);
     hour_angle_list* ha = calculate_hour_angle(delta, LAT, sa);
     prayer_times_list* pt = calculate_prayer_times(tt, ha);
+    free(sa);
+    free(ha);
     return pt;
 }
 
