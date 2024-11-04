@@ -75,7 +75,7 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
     return pt;
 }
 
-static void send_notification(pt_plugin* pt, char* time_left)
+static void send_notification(pt_plugin* pt, char* time_left, int count)
 {
     GNotification* notification = g_notification_new(_("Time left to next prayer:"));
 
@@ -84,7 +84,9 @@ static void send_notification(pt_plugin* pt, char* time_left)
     GIcon* icon = g_themed_icon_new("call-start");
     g_notification_set_icon(notification, icon);
 
-    g_application_send_notification(pt->app, NULL, notification);
+    for (int i = 0; i < count; i++) {
+        g_application_send_notification(pt->app, NULL, notification);
+    }
     g_object_unref(icon);
     g_object_unref(notification);
 }
@@ -115,8 +117,12 @@ static gboolean pt_update(gpointer data)
     sprintf(label_text, "%02d:%02d:%02d", hour, min, sec);
     gtk_label_set_text((GtkLabel*)pt->label, label_text);
 
-    if (!prayed && time_left % (int)pt->not_interval == 0) {
-        send_notification(pt, label_text);
+    if (!prayed) {
+        if (pt->aggressive_mode > 0 && time_left < pt->aggressive_mode) {
+            send_notification(pt, label_text, 5);
+        } else if (time_left % (int)pt->not_interval == 0) {
+            send_notification(pt, label_text, 1);
+        }
     }
 
     if (time_left <= 0) {
@@ -124,6 +130,7 @@ static gboolean pt_update(gpointer data)
             GTK_TOGGLE_BUTTON(pt->check), FALSE
         );
     }
+
     return TRUE;
 }
 

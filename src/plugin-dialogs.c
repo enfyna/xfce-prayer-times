@@ -33,20 +33,21 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         _("Isha Angle (degrees)"), _("Fajr Angle (degrees)"),
         _("Latitude (degrees)"), _("Longitude (degrees)"), 
         _("Shadow Factor [1, 2]"), _("Elevation (m)"),
-        _("Notification Interval (seconds)")
+        _("Notification Interval (seconds)"),
+        _("Aggressive Mode")
     };
 
     gdouble* settings[] = {
         &pt->isha_angle, &pt->fajr_angle,
         &pt->latitude, &pt->longitude, 
         &pt->shadow_factor, &pt->elevation,
-        &pt->not_interval
+        &pt->not_interval, &pt->aggressive_mode
     };
 
     GPtrArray* entry_array = g_ptr_array_new(); 
 
     char dts[10];
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < 8; i++) {
         GtkWidget* input_row = gtk_box_new(
             GTK_ORIENTATION_HORIZONTAL, 10
         );
@@ -100,7 +101,7 @@ void pt_configure_response(
             &pt->isha_angle, &pt->fajr_angle,
             &pt->latitude, &pt->longitude, 
             &pt->shadow_factor, &pt->elevation,
-            &pt->not_interval
+            &pt->not_interval, &pt->aggressive_mode
         };
         GPtrArray* entry_array = g_object_get_data(
             G_OBJECT(pt->plugin), "entry_array"
@@ -147,6 +148,7 @@ void pt_read(pt_plugin* pt)
             pt->not_interval = xfce_rc_read_int_entry(rc, "not_interval", 600);
             pt->elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
             pt->shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
+            pt->aggressive_mode = xfce_rc_read_int_entry(rc, "aggressive_mode", 0);
 
             const gchar *fajr = xfce_rc_read_entry(rc, "fajr_angle", "18");
             const gchar *isha = xfce_rc_read_entry(rc, "isha_angle", "17");
@@ -171,6 +173,7 @@ void pt_read(pt_plugin* pt)
     pt->elevation = 350;
     pt->shadow_factor = 1;
     pt->not_interval = 600;
+    pt->aggressive_mode = 0;
 }
 
 void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
@@ -196,6 +199,7 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
         xfce_rc_write_int_entry(rc, "elevation", pt->elevation);
         xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
+        xfce_rc_write_int_entry(rc, "aggresive_mode", pt->aggressive_mode);
 
         gchar fajr[100];
         gchar isha[100];
