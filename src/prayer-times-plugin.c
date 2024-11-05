@@ -8,8 +8,10 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #include "plugin-dialogs.h"
@@ -22,6 +24,13 @@ XFCE_PANEL_PLUGIN_REGISTER(construct_pt_plugin);
 
 static void construct_pt_plugin(XfcePanelPlugin* plugin)
 {
+    const int pwd_len = strlen(getenv("PWD")) + 10;
+    char locale_dir[pwd_len];
+    snprintf(locale_dir, pwd_len, "%s/panel-po", getenv("PWD"));
+
+    bindtextdomain("xpt", locale_dir);
+    textdomain("xpt");
+
     pt_plugin* pt = create_pt_plugin(plugin);
 
     pt_read(pt);

@@ -18,8 +18,8 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         _("Prayer Times"),
         NULL, // GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(plugin))),
         GTK_DIALOG_DESTROY_WITH_PARENT,
-        "gtk-help", "Help", GTK_RESPONSE_HELP,
-        "gtk-save", "Save", GTK_RESPONSE_APPLY,
+        "gtk-help", _("Help"), GTK_RESPONSE_HELP,
+        "gtk-save", _("Save"), GTK_RESPONSE_APPLY,
         NULL
     );
 
@@ -93,7 +93,7 @@ void pt_configure_response(
             NULL
         );
         if (G_UNLIKELY(result == FALSE))
-            g_warning(_("Unable to open the following url: %s"),
+            g_warning("Unable to open the following url: %s",
                 PLUGIN_WEBSITE
             );
     } else if (response == GTK_RESPONSE_APPLY) {

@@ -1,0 +1,86 @@
+# Prayer Times
+# Copyright (C) 2024
+# This file is distributed under the same license as the PACKAGE package.
+# Ramazan Aslan <ramazanaslan21901@gmail.com>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Report-Msgid-Bugs-To: Ramazan Aslan <ramazanaslan21901@gmail.com> \n"
+"POT-Creation-Date: 2024-11-05 17:26+0300\n"
+"PO-Revision-Date: - \n"
+"Last-Translator: Ramazan Aslan <ramazanaslan21901@gmail.com>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/plugin-dialogs.c:18
+msgid "Prayer Times"
+msgstr ""
+
+#: src/plugin-dialogs.c:21
+msgid "Help"
+msgstr ""
+
+#: src/plugin-dialogs.c:22
+msgid "Save"
+msgstr ""
+
+#: src/plugin-dialogs.c:33
+msgid "Isha Angle (degrees)"
+msgstr ""
+
+#: src/plugin-dialogs.c:33
+msgid "Fajr Angle (degrees)"
+msgstr ""
+
+#: src/plugin-dialogs.c:34
+msgid "Latitude (degrees)"
+msgstr ""
+
+#: src/plugin-dialogs.c:34
+msgid "Longitude (degrees)"
+msgstr ""
+
+#: src/plugin-dialogs.c:35
+msgid "Shadow Factor [1, 2]"
+msgstr ""
+
+#: src/plugin-dialogs.c:35
+msgid "Elevation (m)"
+msgstr ""
+
+#: src/plugin-dialogs.c:36
+msgid "Notification Interval (seconds)"
+msgstr ""
+
+#: src/plugin-dialogs.c:37
+msgid "Aggressive Mode"
+msgstr ""
+
+#: src/plugin-dialogs.c:236
+msgid "Islamic prayer times plugin"
+msgstr ""
+
+#: src/prayer-times-plugin.c:68
+msgid "Check if prayed"
+msgstr ""
+
+#: src/prayer-times-plugin.c:89
+msgid "Time left to next prayer:"
+msgstr ""
+
+#: src/prayer-times-plugin.c:162
+#, c-format
+msgid ""
+"%02d.%02d.%d %s \n"
+"----------------\n"
+"%2s : Fajr      \n"
+"%2s : Sunrise   \n"
+"%2s : Zuhr      \n"
+"%2s : Asr       \n"
+"%2s : Maghrib   \n"
+"%2s : Isha        "
+msgstr ""

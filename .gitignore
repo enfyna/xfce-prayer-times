@@ -2,3 +2,4 @@
 lib/
 build/
 compile_commands.json
+LC_MESSAGES/

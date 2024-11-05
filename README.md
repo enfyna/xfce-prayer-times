@@ -89,6 +89,26 @@ Plugin label will show the time left to the next calculated prayer time. If the 
 
 Prayer times are calculated with the formula taken from this [page](https://radhifadlillah.com/blog/2020-09-06-calculating-prayer-times/). You can read the requirements section there to learn how to setup the parameters. 
 
+# Translate
+
+Translation files are stored in the `panel-po` directory.
+
+### Adding a new language
+
+To add a new language run the following command:
+
+    make po-init LANG=<language-code>
+
+This will generate a `xpt.po` file under the `panel-po/<language-code>` directory.
+In this file you can add your translations by providing the translated text in the `msgstr` fields corresponding to the `msgid` entries.
+
+### Testing Translations
+
+To test your translations, change the LANG environment variable to your target language and restart the XFCE panel.
+For example to test the english translations use:
+
+    LANG=en_US.utf8
+    make && xfce4-panel -r
 
 # Develop
 
