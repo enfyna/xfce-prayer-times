@@ -199,7 +199,7 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
         xfce_rc_write_int_entry(rc, "elevation", pt->elevation);
         xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
-        xfce_rc_write_int_entry(rc, "aggresive_mode", pt->aggressive_mode);
+        xfce_rc_write_int_entry(rc, "aggressive_mode", pt->aggressive_mode);
 
         gchar fajr[100];
         gchar isha[100];
