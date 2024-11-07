@@ -1,0 +1,94 @@
+# Turkish translations for Prayer Times package.
+# Copyright (C) 2024 THE Prayer Times'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the Prayer Times package.
+#  <ramazanaslan21901@gmail.com>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Prayer Times 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-11-05 17:14+0300\n"
+"PO-Revision-Date: 2024-11-05 14:00+0300\n"
+"Last-Translator: <ramazanaslan21901@gmail.com>\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/plugin-dialogs.c:18
+msgid "Prayer Times"
+msgstr "Vakit Namazları"
+
+#: src/plugin-dialogs.c:21
+msgid "Help"
+msgstr "Yardım"
+
+#: src/plugin-dialogs.c:22
+msgid "Save"
+msgstr "Kaydet"
+
+#: src/plugin-dialogs.c:33
+msgid "Isha Angle (degrees)"
+msgstr "Yatsı Açısı (derece)"
+
+#: src/plugin-dialogs.c:33
+msgid "Fajr Angle (degrees)"
+msgstr "Sabah Açısı (derece)"
+
+#: src/plugin-dialogs.c:34
+msgid "Latitude (degrees)"
+msgstr "Enlem (derece)"
+
+#: src/plugin-dialogs.c:34
+msgid "Longitude (degrees)"
+msgstr "Boylam (derece)"
+
+#: src/plugin-dialogs.c:35
+msgid "Shadow Factor [1, 2]"
+msgstr "Gölge Oranı [1, 2]"
+
+#: src/plugin-dialogs.c:35
+msgid "Elevation (m)"
+msgstr "Rakım (m)"
+
+#: src/plugin-dialogs.c:36
+msgid "Notification Interval (seconds)"
+msgstr "Bildirim Aralığı (saniye)"
+
+#: src/plugin-dialogs.c:37
+msgid "Aggressive Mode"
+msgstr "Agresif Mod"
+
+#: src/plugin-dialogs.c:236
+msgid "Islamic prayer times plugin"
+msgstr "Vakit namazları eklentisi"
+
+#: src/prayer-times-plugin.c:68
+msgid "Check if prayed"
+msgstr "Namazı kıldıysan işaretle"
+
+#: src/prayer-times-plugin.c:89
+msgid "Time left to next prayer:"
+msgstr "Sonraki vakte kalan zaman: "
+
+#: src/prayer-times-plugin.c:162
+#, c-format
+msgid ""
+"%02d.%02d.%d %s \n"
+"----------------\n"
+"%2s : Fajr      \n"
+"%2s : Sunrise   \n"
+"%2s : Zuhr      \n"
+"%2s : Asr       \n"
+"%2s : Maghrib   \n"
+"%2s : Isha        "
+msgstr ""
+"%02d.%02d.%d %s \n"
+"----------------\n"
+"%2s : İmsak     \n"
+"%2s : Güneş     \n"
+"%2s : Öğle      \n"
+"%2s : İkindi    \n"
+"%2s : Akşam     \n"
+"%2s : Yatsı       "
