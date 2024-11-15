@@ -254,9 +254,6 @@ prayer_time* get_next_prayer(prayer_times_list* pt_list)
             }
         }
     }
-    prayer_time *next_prayer = malloc(sizeof(prayer_time));
-    next_prayer->HOUR = pt_list->SUNRISE->HOUR + 24;
-    next_prayer->MINUTE = pt_list->SUNRISE->MINUTE;
-    next_prayer->SECOND = pt_list->SUNRISE->SECOND;
-    return next_prayer;
+
+    return pt_list->FAJR;
 }

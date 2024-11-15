@@ -115,6 +115,9 @@ static gboolean pt_update(gpointer data)
     prayer_time* next_prayer = get_next_prayer(pt->pt_list);
 
     int next_prayer_seconds = next_prayer->HOUR * 3600 + next_prayer->MINUTE * 60 + next_prayer->SECOND;
+    if (next_prayer == pt->pt_list->FAJR) {
+        next_prayer_seconds += 24 * 3600;
+    }
     int current_seconds = date->tm_hour * 3600 + date->tm_min * 60 + date->tm_sec;
 
     int time_left = next_prayer_seconds - current_seconds;
