@@ -184,76 +184,31 @@ prayer_times_list* get_prayer_times_list(
     return pt;
 }
 
+#define PT_CHECK(pt) \
+    if ((pt)->HOUR > date.tm_hour) { \
+        return (pt); \
+    } \
+    if ((pt)->HOUR == date.tm_hour) { \
+        if ((pt)->MINUTE > date.tm_min) { \
+            return (pt); \
+        } \
+        if ((pt)->MINUTE == date.tm_min) { \
+            if ((pt)->SECOND >= date.tm_sec) { \
+                return (pt); \
+            } \
+        } \
+    }
+
 prayer_time* get_next_prayer(prayer_times_list* pt_list)
 {
     time_t now = time(NULL);
     struct tm date = *localtime(&now);
 
-    if (pt_list->SUNRISE->HOUR > date.tm_hour) {
-        return pt_list->SUNRISE;
-    }
-    if (pt_list->SUNRISE->HOUR == date.tm_hour) {
-        if (pt_list->SUNRISE->MINUTE > date.tm_min) {
-            return pt_list->SUNRISE;
-        }
-        if (pt_list->SUNRISE->MINUTE == date.tm_min) {
-            if (pt_list->SUNRISE->SECOND >= date.tm_sec) {
-                return pt_list->SUNRISE;
-            }
-        }
-    }
-    if (pt_list->ZUHR->HOUR > date.tm_hour) {
-        return pt_list->ZUHR;
-    }
-    if (pt_list->ZUHR->HOUR == date.tm_hour) {
-        if (pt_list->ZUHR->MINUTE > date.tm_min) {
-            return pt_list->ZUHR;
-        }
-        if (pt_list->ZUHR->MINUTE == date.tm_min) {
-            if (pt_list->ZUHR->SECOND >= date.tm_sec) {
-                return pt_list->ZUHR;
-            }
-        }
-    }
-    if (pt_list->ASR->HOUR > date.tm_hour) {
-        return pt_list->ASR;
-    }
-    if (pt_list->ASR->HOUR == date.tm_hour) {
-        if (pt_list->ASR->MINUTE > date.tm_min) {
-            return pt_list->ASR;
-        }
-        if (pt_list->ASR->MINUTE == date.tm_min) {
-            if (pt_list->ASR->SECOND >= date.tm_sec) {
-                return pt_list->ASR;
-            }
-        }
-    }
-    if (pt_list->MAGHRIB->HOUR > date.tm_hour) {
-        return pt_list->MAGHRIB;
-    }
-    if (pt_list->MAGHRIB->HOUR == date.tm_hour) {
-        if (pt_list->MAGHRIB->MINUTE > date.tm_min) {
-            return pt_list->MAGHRIB;
-        }
-        if (pt_list->MAGHRIB->MINUTE == date.tm_min) {
-            if (pt_list->MAGHRIB->SECOND >= date.tm_sec) {
-                return pt_list->MAGHRIB;
-            }
-        }
-    }
-    if (pt_list->ISHA->HOUR > date.tm_hour) {
-        return pt_list->ISHA;
-    }
-    if (pt_list->ISHA->HOUR == date.tm_hour) {
-        if (pt_list->ISHA->MINUTE > date.tm_min) {
-            return pt_list->ISHA;
-        }
-        if (pt_list->ISHA->MINUTE == date.tm_min) {
-            if (pt_list->ISHA->SECOND >= date.tm_sec) {
-                return pt_list->ISHA;
-            }
-        }
-    }
+    PT_CHECK(pt_list->SUNRISE);
+    PT_CHECK(pt_list->ZUHR);
+    PT_CHECK(pt_list->ASR);
+    PT_CHECK(pt_list->MAGHRIB);
+    PT_CHECK(pt_list->ISHA);
 
     return pt_list->FAJR;
 }
