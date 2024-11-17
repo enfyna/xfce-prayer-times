@@ -1,8 +1,7 @@
-#include <libxfce4panel/xfce-panel-plugin.h>
-#include <libxfce4util/libxfce4util.h>
+#ifndef _H_PLUGIN_DIALOGS
+#define _H_PLUGIN_DIALOGS
 
-#include <gtk/gtk.h>
-#include <glib.h>
+#include <libxfce4panel/xfce-panel-plugin.h>
 
 #include "calculate-times.h"
 
@@ -22,17 +21,12 @@ typedef struct {
     GtkWidget* check;
 
     /* settings */
-    gdouble fajr_angle;
-    gdouble isha_angle;
-    gdouble latitude;
-    gdouble longitude;
-    gdouble elevation;
-    gdouble shadow_factor;
+    pt_args* pt_args;
     gdouble not_interval;
     gdouble aggressive_mode;
-    
+
     gint timeout;
-    prayer_times_list* pt_list;
+    pt_list* pt_list;
 } pt_plugin;
 
 void set_tooltip_text(pt_plugin* pt);
@@ -45,3 +39,4 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt);
 void pt_read(pt_plugin* pt);
 
 void pt_free(XfcePanelPlugin* plugin, pt_plugin* pt);
+#endif // _H_PLUGIN_DIALOGS

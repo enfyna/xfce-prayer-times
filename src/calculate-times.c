@@ -1,11 +1,11 @@
-#include <math.h>
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
+#include <math.h>
 
 #include "calculate-times.h"
 
-static double calculate_julian_days(struct tm *date, int Timezone)
+double calc_julian_days(struct tm *date, int tz)
 {
     int Y = date->tm_year + 1900;
     int M = date->tm_mon + 1;
@@ -25,12 +25,12 @@ static double calculate_julian_days(struct tm *date, int Timezone)
         + (int)(30.6001 * (M + 1)) 
         + B + D 
         + ((H * 3600 + m * 60 + s) / 86400.0) 
-        - (Timezone / 24.0)
+        - (tz / 24.0)
     ;
     return JD;
 }
 
-static double calculate_sun_declination(double jd)
+double calc_sun_declination(double jd)
 {
     double T = 2 * PI * (jd - J2000_EPOCH) / 365.25;
     double Delta = 0.37877 
@@ -41,7 +41,7 @@ static double calculate_sun_declination(double jd)
     return Delta;
 }
 
-static double calculate_equation_of_time(double jd)
+double calc_equation_of_time(double jd)
 {
     double U = (jd - J2000_EPOCH) / 36525;
 
@@ -60,72 +60,58 @@ static double calculate_equation_of_time(double jd)
     return ET;
 }
 
-static double calculate_transit_time(
-        double LONGTITUDE, double ET, double timezone
-    )
+double calc_transit_time(double lon, double et, double tz)
 {
-    double TT = 12 + timezone - (LONGTITUDE / 15) - (ET / 60);
+    double TT = 12 + tz - (lon / 15) - (et / 60);
     return TT;
 }
 
-static sun_altitude_list* calculate_sun_altitudes(
-        double DELTA, double LAT, double elevation, 
-        double SF, double FAJR_ANGLE, double ISHA_ANGLE
-    )
+calc_list calc_sun_altitudes(double delta, pt_args* args)
 {
-    sun_altitude_list* sa = malloc(sizeof(sun_altitude_list));
+    calc_list sa = {0};
 
-    double SA_FAJR = -(FAJR_ANGLE);
-    double SA_SUNRISE = -0.8333 - (0.0347 * sqrt(elevation));
+    double SA_FAJR = -(args->fajr_angle);
+    double SA_SUNRISE = -0.8333 - (0.0347 * sqrt(args->elevation));
 
-    double abs_res = fabs(DELTA - LAT);
+    double abs_res = fabs(delta - args->latitude);
     double tan_res = tan(abs_res * DEG_TO_RAD);
-    double add_shadow = tan_res + SF;
+    double add_shadow = tan_res + args->shadow_factor;
     double SA_ASR = atan2(1, add_shadow) * RAD_TO_DEG;
 
     double SA_MAGHRIB = SA_SUNRISE;
-    double SA_ISHA = -(ISHA_ANGLE);
-    sa->FAJR = SA_FAJR;
-    sa->SUNRISE = SA_SUNRISE;
-    sa->ASR = SA_ASR;
-    sa->MAGHRIB = SA_MAGHRIB;
-    sa->ISHA = SA_ISHA;
+    double SA_ISHA = -(args->isha_angle);
+
+    sa.items[FAJR] = SA_FAJR;
+    sa.items[SUNRISE] = SA_SUNRISE;
+    sa.items[ASR]= SA_ASR;
+    sa.items[MAGHRIB] = SA_MAGHRIB;
+    sa.items[ISHA] = SA_ISHA;
 
     return sa;
 }
 
-static hour_angle_list* calculate_hour_angle(
-        double DELTA, double LAT, sun_altitude_list* sa
-    )
+calc_list calc_hour_angles(double delta, double lat, calc_list* sa)
 {
-    hour_angle_list* ha = malloc(sizeof(hour_angle_list));
-    double CHA;
-    LAT *= DEG_TO_RAD;
-    DELTA *= DEG_TO_RAD;
+    calc_list ha = {0};
+    lat *= DEG_TO_RAD;
+    delta *= DEG_TO_RAD;
 
-    CHA = (sin(sa->ASR * DEG_TO_RAD) 
-        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
-    ha->ASR = acos(CHA) * RAD_TO_DEG;
-
-    CHA = (sin(sa->FAJR * DEG_TO_RAD) 
-        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
-    ha->FAJR = acos(CHA) * RAD_TO_DEG;
-
-    CHA = (sin(sa->ISHA * DEG_TO_RAD) 
-        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
-    ha->ISHA = acos(CHA) * RAD_TO_DEG;
-
-    CHA = (sin(sa->SUNRISE * DEG_TO_RAD) 
-        - sin(LAT) * sin(DELTA)) / (cos(LAT) * cos(DELTA));
-    ha->SUNRISE = acos(CHA) * RAD_TO_DEG;
-    ha->MAGHRIB = ha->SUNRISE;
+    for (int i = 0; i < PT_TIME_COUNT; i++) {
+        if (i == MAGHRIB) {
+            continue;
+        }
+        double CHA = (sin(sa->items[i] * DEG_TO_RAD) 
+            - sin(lat) * sin(delta)) / (cos(lat) * cos(delta));
+        ha.items[i] = acos(CHA) * RAD_TO_DEG;
+    }
+    ha.items[MAGHRIB] = ha.items[SUNRISE];
 
     return ha;
 }
 
-prayer_time* double_time_to_time(double time)
+pt_time* pt_double_to_time(double time)
 {
-    prayer_time* pt = malloc(sizeof(prayer_time));
+    pt_time* pt = malloc(sizeof(pt_time));
 
     int hours = (int)time;
     int minutes = (int)((time - hours) * 60);
@@ -137,23 +123,27 @@ prayer_time* double_time_to_time(double time)
     return pt;
 }
 
-prayer_times_list* calculate_prayer_times(
-        double TT, hour_angle_list* ha
-    )
+pt_list* calc_pt_list(double tt, calc_list* ha)
 {
-    prayer_times_list* pt = malloc(sizeof(prayer_times_list));
+    pt_list* pt = malloc(sizeof(pt_list));
 
-    pt->FAJR = double_time_to_time(TT - ha->FAJR / 15);
-    pt->SUNRISE = double_time_to_time(TT - ha->SUNRISE / 15);
-    pt->ZUHR = double_time_to_time(TT + DESCEND_CORRECTION);
-    pt->ASR = double_time_to_time(TT + ha->ASR / 15);
-    pt->MAGHRIB = double_time_to_time(TT + ha->MAGHRIB / 15);
-    pt->ISHA = double_time_to_time(TT + ha->ISHA / 15);
+    for (int i = 0; i < PT_TIME_COUNT; i++) {
+        if (i == ZUHR) {
+            continue;
+        }
+        double h = ha->items[i] / 15.0;
+        if (i < ZUHR) {
+            h *= -1;
+        }
+        pt->items[i] = pt_double_to_time(tt + h);
+    }
+
+    pt->items[ZUHR] = pt_double_to_time(tt + DESCEND_CORRECTION);
 
     return pt;
 }
 
-char* prayer_time_to_string(prayer_time* pt_time)
+char* pt_to_string(pt_time* pt_time)
 {
     char* str = malloc(sizeof(char) * 9);
     if (str == NULL) { return NULL; }
@@ -163,52 +153,42 @@ char* prayer_time_to_string(prayer_time* pt_time)
     return str;
 }
 
-prayer_times_list* get_prayer_times_list(
-        double LONG, double LAT, double elevation,
-        int SF, double FAJR_ANGLE, double ISHA_ANGLE
-    )
+pt_list* pt_get_list(pt_args* args)
 {
     time_t now = time(NULL);
     struct tm *date = localtime(&now);
 
-    int TimeZone = date->tm_gmtoff / 3600;
-    double jd = calculate_julian_days(date, TimeZone);
-    double delta = calculate_sun_declination(jd);
-    double et = calculate_equation_of_time(jd);
-    double tt = calculate_transit_time(LONG, et, TimeZone);
-    sun_altitude_list* sa = calculate_sun_altitudes(delta, LAT, elevation, SF, FAJR_ANGLE, ISHA_ANGLE);
-    hour_angle_list* ha = calculate_hour_angle(delta, LAT, sa);
-    prayer_times_list* pt = calculate_prayer_times(tt, ha);
-    free(sa);
-    free(ha);
+    int tz = date->tm_gmtoff / 3600;
+    double jd = calc_julian_days(date, tz);
+    double delta = calc_sun_declination(jd);
+    double et = calc_equation_of_time(jd);
+    double tt = calc_transit_time(args->longitude, et, tz);
+    calc_list sa = calc_sun_altitudes(delta, args);
+    calc_list ha = calc_hour_angles(delta, args->latitude, &sa);
+    pt_list* pt = calc_pt_list(tt, &ha);
     return pt;
 }
 
-#define PT_CHECK(pt) \
-    if ((pt)->HOUR > date.tm_hour) { \
-        return (pt); \
-    } \
-    if ((pt)->HOUR == date.tm_hour) { \
-        if ((pt)->MINUTE > date.tm_min) { \
-            return (pt); \
-        } \
-        if ((pt)->MINUTE == date.tm_min) { \
-            if ((pt)->SECOND >= date.tm_sec) { \
-                return (pt); \
-            } \
-        } \
-    }
-
-prayer_time* get_next_prayer(prayer_times_list* pt_list)
+pt_time* pt_next_prayer(pt_list* pt_list)
 {
     time_t now = time(NULL);
     struct tm date = *localtime(&now);
 
-    PT_CHECK(pt_list->SUNRISE);
-    PT_CHECK(pt_list->ZUHR);
-    PT_CHECK(pt_list->ASR);
-    PT_CHECK(pt_list->MAGHRIB);
-    PT_CHECK(pt_list->ISHA);
+    for (int i = SUNRISE; i < PT_TIME_COUNT; i++) {
+        if (pt_list->items[i]->HOUR > date.tm_hour) {
+            return pt_list->items[i];
+        }
+        if (pt_list->items[i]->HOUR == date.tm_hour) {
+            if (pt_list->items[i]->MINUTE > date.tm_min) {
+                return pt_list->items[i];
+            }
+            if (pt_list->items[i]->MINUTE == date.tm_min) {
+                if (pt_list->items[i]->SECOND >= date.tm_sec) {
+                    return pt_list->items[i];
+                }
+            }
+        }
+    }
 
-    return pt_list->FAJR;
+    return pt_list->items[FAJR];
 }

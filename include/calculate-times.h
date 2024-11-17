@@ -1,48 +1,53 @@
-#include <time.h>
+#ifndef _H_CALCULATE_TIMES
+#define _H_CALCULATE_TIMES
 
-// CONSTANTS
 #define PI 3.1415926535897932384626433832795028841971693993751
 #define DEG_TO_RAD (PI / 180.0)
 #define RAD_TO_DEG (180.0 / PI)
 #define J2000_EPOCH 2451545.0
 
+// TODO:
+// Add to pt_args
 #define DESCEND_CORRECTION 0
 
-// degrees
-typedef struct {
-    double FAJR;
-    double SUNRISE;
-    double ASR;
-    double MAGHRIB;
-    double ISHA;
-} sun_altitude_list;
+#define PT_TIME_COUNT 6
 
-// degrees
-typedef struct {
-    double FAJR;
-    double SUNRISE;
-    double ASR;
-    double MAGHRIB;
-    double ISHA;
-} hour_angle_list;
+typedef enum {
+    FAJR,
+    SUNRISE,
+    ZUHR,
+    ASR,
+    MAGHRIB,
+    ISHA
+} PT_Times;
 
 typedef struct {
     int HOUR;
     int MINUTE;
     int SECOND;
-} prayer_time;
+} pt_time;
 
 typedef struct {
-    prayer_time* FAJR;
-    prayer_time* SUNRISE;
-    prayer_time* ASR;
-    prayer_time* MAGHRIB;
-    prayer_time* ZUHR;
-    prayer_time* ISHA;
-} prayer_times_list;
+    double fajr_angle;
+    double isha_angle;
+    double latitude;
+    double longitude;
+    double elevation;
+    double shadow_factor;
+} pt_args; // find a better name ?
 
-char* prayer_time_to_string(prayer_time* time);
-prayer_time* double_time_to_time(double time);
+// degrees
+typedef struct {
+    double items[PT_TIME_COUNT];
+} calc_list;
 
-prayer_times_list* get_prayer_times_list(double LONG, double LAT, double elevation, int SF, double FAJR_ANGLE, double ISHA_ANGLE);
-prayer_time* get_next_prayer(prayer_times_list* pt_list);
+typedef struct {
+    pt_time* items[PT_TIME_COUNT];
+} pt_list;
+
+char* pt_to_string(pt_time* time);
+pt_time* pt_double_to_time(double time);
+
+pt_list* pt_get_list(pt_args* args);
+pt_time* pt_next_prayer(pt_list* pt_list);
+#endif // _H_CALCULATE_TIMES

@@ -1,12 +1,4 @@
-#include <stdlib.h>
-#include <stdio.h>
-
-#include <gtk/gtk.h>
-#include <glib.h>
-#include <glib-object.h>
 #include <libxfce4ui/libxfce4ui.h>
-#include <libxfce4util/libxfce4util.h>
-#include <string.h>
 
 #include "plugin-dialogs.h"
 
@@ -16,7 +8,7 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
 
     GtkWidget* dialog = xfce_titled_dialog_new_with_mixed_buttons(
         _("Prayer Times"),
-        NULL, // GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(plugin))),
+        NULL,
         GTK_DIALOG_DESTROY_WITH_PARENT,
         "gtk-help", _("Help"), GTK_RESPONSE_HELP,
         "gtk-save", _("Save"), GTK_RESPONSE_APPLY,
@@ -38,9 +30,9 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
     };
 
     gdouble* settings[] = {
-        &pt->isha_angle, &pt->fajr_angle,
-        &pt->latitude, &pt->longitude, 
-        &pt->shadow_factor, &pt->elevation,
+        &pt->pt_args->isha_angle, &pt->pt_args->fajr_angle,
+        &pt->pt_args->latitude, &pt->pt_args->longitude, 
+        &pt->pt_args->shadow_factor, &pt->pt_args->elevation,
         &pt->not_interval, &pt->aggressive_mode
     };
 
@@ -98,9 +90,9 @@ void pt_configure_response(
             );
     } else if (response == GTK_RESPONSE_APPLY) {
         gdouble* settings[] = {
-            &pt->isha_angle, &pt->fajr_angle,
-            &pt->latitude, &pt->longitude, 
-            &pt->shadow_factor, &pt->elevation,
+            &pt->pt_args->isha_angle, &pt->pt_args->fajr_angle,
+            &pt->pt_args->latitude, &pt->pt_args->longitude, 
+            &pt->pt_args->shadow_factor, &pt->pt_args->elevation,
             &pt->not_interval, &pt->aggressive_mode
         };
         GPtrArray* entry_array = g_object_get_data(
@@ -114,8 +106,7 @@ void pt_configure_response(
             gdouble res = atof(input);
             *settings[i] = res;
         }
-        prayer_times_list* ptl = get_prayer_times_list(
-            pt->longitude, pt->latitude, pt->elevation, pt->shadow_factor, pt->fajr_angle, pt->isha_angle);
+        pt_list* ptl = pt_get_list(pt->pt_args);
         pt->pt_list = ptl;
 
         set_tooltip_text(pt);
@@ -146,19 +137,19 @@ void pt_read(pt_plugin* pt)
         if (G_LIKELY(rc != NULL)) {
             /* read the settings */
             pt->not_interval = xfce_rc_read_int_entry(rc, "not_interval", 600);
-            pt->elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
-            pt->shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
+            pt->pt_args->elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
+            pt->pt_args->shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
             pt->aggressive_mode = xfce_rc_read_int_entry(rc, "aggressive_mode", 0);
 
             const gchar *fajr = xfce_rc_read_entry(rc, "fajr_angle", "18");
             const gchar *isha = xfce_rc_read_entry(rc, "isha_angle", "17");
-            pt->fajr_angle = atof(fajr);
-            pt->isha_angle = atof(isha);
+            pt->pt_args->fajr_angle = atof(fajr);
+            pt->pt_args->isha_angle = atof(isha);
 
             const gchar *lat = xfce_rc_read_entry(rc, "latitude", "37.77");
             const gchar *lon = xfce_rc_read_entry(rc, "longitude", "29.08");
-            pt->latitude = atof(lat);
-            pt->longitude = atof(lon);
+            pt->pt_args->latitude = atof(lat);
+            pt->pt_args->longitude = atof(lon);
 
             xfce_rc_close(rc);
             return;
@@ -166,12 +157,12 @@ void pt_read(pt_plugin* pt)
     }
     DBG("Applying default settings");
 
-    pt->fajr_angle = 18;
-    pt->isha_angle = 17;
-    pt->latitude = 37.77;
-    pt->longitude = 29.08;
-    pt->elevation = 350;
-    pt->shadow_factor = 1;
+    pt->pt_args->fajr_angle = 18;
+    pt->pt_args->isha_angle = 17;
+    pt->pt_args->latitude = 37.77;
+    pt->pt_args->longitude = 29.08;
+    pt->pt_args->elevation = 350;
+    pt->pt_args->shadow_factor = 1;
     pt->not_interval = 600;
     pt->aggressive_mode = 0;
 }
@@ -196,16 +187,16 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
     if (G_LIKELY(rc != NULL)) {
         /* save the settings */
         DBG(".");
+        xfce_rc_write_int_entry(rc, "elevation", pt->pt_args->elevation);
+        xfce_rc_write_int_entry(rc, "shadow_factor", pt->pt_args->shadow_factor);
         xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
-        xfce_rc_write_int_entry(rc, "elevation", pt->elevation);
-        xfce_rc_write_int_entry(rc, "shadow_factor", pt->shadow_factor);
         xfce_rc_write_int_entry(rc, "aggressive_mode", pt->aggressive_mode);
 
         gchar fajr[100];
         gchar isha[100];
 
-        sprintf(fajr, "%lf", pt->fajr_angle);
-        sprintf(isha, "%lf", pt->isha_angle);
+        sprintf(fajr, "%lf", pt->pt_args->fajr_angle);
+        sprintf(isha, "%lf", pt->pt_args->isha_angle);
 
         xfce_rc_write_entry(rc, "fajr_angle", fajr);
         xfce_rc_write_entry(rc, "isha_angle", isha);
@@ -213,8 +204,8 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         gchar lat[100];
         gchar lon[100];
 
-        sprintf(lat, "%lf", pt->latitude);
-        sprintf(lon, "%lf", pt->longitude);
+        sprintf(lat, "%lf", pt->pt_args->latitude);
+        sprintf(lon, "%lf", pt->pt_args->longitude);
 
         xfce_rc_write_entry(rc, "latitude", lat);
         xfce_rc_write_entry(rc, "longitude", lon);

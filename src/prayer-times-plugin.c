@@ -1,18 +1,6 @@
-#include <libintl.h>
 #include <libxfce4panel/libxfce4panel.h>
 #include <libxfce4ui/libxfce4ui.h>
-#include <libxfce4util/libxfce4util.h>
-
-#include <glib-object.h>
-#include <gio/gio.h>
-#include <glib.h>
-#include <gtk/gtk.h>
-
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
+#include <libintl.h>
 
 #include "plugin-dialogs.h"
 
@@ -35,10 +23,7 @@ static void construct_pt_plugin(XfcePanelPlugin* plugin)
 
     pt_read(pt);
 
-    pt->pt_list = get_prayer_times_list(
-        pt->longitude, pt->latitude, pt->elevation,
-        pt->shadow_factor, pt->fajr_angle, pt->isha_angle
-    );
+    pt->pt_list = pt_get_list(pt->pt_args);
 
     set_tooltip_text(pt);
 
@@ -52,6 +37,8 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
 
     pt_plugin* pt = g_slice_new0(pt_plugin);
     pt->plugin = plugin;
+
+    pt->pt_args = malloc(sizeof(pt_args));
 
     pt->app = g_application_new("prayer.times", G_APPLICATION_DEFAULT_FLAGS);
     g_application_register(pt->app, NULL, NULL);
@@ -112,10 +99,10 @@ static gboolean pt_update(gpointer data)
     time_t now = time(NULL);
     struct tm* date = localtime(&now);
 
-    prayer_time* next_prayer = get_next_prayer(pt->pt_list);
+    pt_time* next_prayer = pt_next_prayer(pt->pt_list);
 
     int next_prayer_seconds = next_prayer->HOUR * 3600 + next_prayer->MINUTE * 60 + next_prayer->SECOND;
-    if (next_prayer == pt->pt_list->FAJR) {
+    if (next_prayer == pt->pt_list->items[FAJR]) {
         next_prayer_seconds += 24 * 3600;
     }
     int current_seconds = date->tm_hour * 3600 + date->tm_min * 60 + date->tm_sec;
@@ -127,10 +114,12 @@ static gboolean pt_update(gpointer data)
     int sec = time_left % 60;
 
     sprintf(label_text, "%02d:%02d:%02d", hour, min, sec);
-    gtk_label_set_text((GtkLabel*)pt->label, label_text);
+    gtk_label_set_text(GTK_LABEL(pt->label), label_text);
 
     if (!prayed) {
-        if (pt->aggressive_mode > 0 && time_left < pt->aggressive_mode) {
+        if (pt->pt_list->items[FAJR] == next_prayer) {
+            // no need
+        } else if (pt->aggressive_mode > 0 && time_left < pt->aggressive_mode) {
             send_notification(pt, label_text, 5);
         } else if (time_left % (int)pt->not_interval == 0) {
             send_notification(pt, label_text, 1);
@@ -152,14 +141,12 @@ void set_tooltip_text(pt_plugin* pt)
 
     time_t now = time(NULL);
     struct tm date = *localtime(&now);
-    prayer_times_list* ptl = pt->pt_list;
+    pt_list* ptl = pt->pt_list;
 
-    char* fjr_str = prayer_time_to_string(ptl->FAJR);
-    char* sun_str = prayer_time_to_string(ptl->SUNRISE);
-    char* zhr_str = prayer_time_to_string(ptl->ZUHR);
-    char* asr_str = prayer_time_to_string(ptl->ASR);
-    char* mrb_str = prayer_time_to_string(ptl->MAGHRIB);
-    char* ish_str = prayer_time_to_string(ptl->ISHA);
+    char* pt_str[PT_TIME_COUNT];
+    for (int i = 0; i < PT_TIME_COUNT; i++) {
+        pt_str[i] = pt_to_string(ptl->items[i]);
+    }
 
     sprintf(tooltip_text, _(
         "%02d.%02d.%d %s \n"
@@ -171,14 +158,11 @@ void set_tooltip_text(pt_plugin* pt)
         "%2s : Maghrib   \n"
         "%2s : Isha        "),
         date.tm_mday, date.tm_mon + 1, date.tm_year + 1900, date.tm_zone,
-        fjr_str, sun_str, zhr_str, asr_str, mrb_str, ish_str
+        pt_str[FAJR], pt_str[SUNRISE], pt_str[ZUHR], pt_str[ASR], pt_str[MAGHRIB], pt_str[ISHA]
     );
 
     gtk_widget_set_tooltip_text(GTK_WIDGET(pt->hvbox), tooltip_text);
-    free(fjr_str);
-    free(sun_str);
-    free(zhr_str);
-    free(asr_str);
-    free(mrb_str);
-    free(ish_str);
+    for (int i = 0; i < PT_TIME_COUNT; i++) {
+        free(pt_str[i]);
+    }
 }
