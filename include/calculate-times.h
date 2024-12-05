@@ -28,6 +28,10 @@ typedef struct {
 } pt_time;
 
 typedef struct {
+    char data[9];
+} pt_time_cstr;
+
+typedef struct {
     double fajr_angle;
     double isha_angle;
     double latitude;
@@ -42,12 +46,12 @@ typedef struct {
 } calc_list;
 
 typedef struct {
-    pt_time* items[PT_TIME_COUNT];
+    pt_time items[PT_TIME_COUNT];
 } pt_list;
 
-char* pt_to_string(pt_time* time);
-pt_time* pt_double_to_time(double time);
+pt_time_cstr pt_to_string(pt_time time);
+pt_time pt_double_to_time(double time);
 
-pt_list* pt_get_list(pt_args* args);
+pt_list pt_get_list(pt_args* args);
 pt_time* pt_next_prayer(pt_list* pt_list);
 #endif // _H_CALCULATE_TIMES

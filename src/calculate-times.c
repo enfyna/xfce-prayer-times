@@ -109,23 +109,23 @@ calc_list calc_hour_angles(double delta, double lat, calc_list* sa)
     return ha;
 }
 
-pt_time* pt_double_to_time(double time)
+pt_time pt_double_to_time(double time)
 {
-    pt_time* pt = malloc(sizeof(pt_time));
+    pt_time pt;
 
     int hours = (int)time;
     int minutes = (int)((time - hours) * 60);
     int seconds = (int)((time - hours - (minutes / 60.0)) * 3600);
 
-    pt->HOUR = hours;
-    pt->MINUTE = minutes;
-    pt->SECOND = seconds;
+    pt.HOUR = hours;
+    pt.MINUTE = minutes;
+    pt.SECOND = seconds;
     return pt;
 }
 
-pt_list* calc_pt_list(double tt, calc_list* ha)
+pt_list calc_pt_list(double tt, calc_list* ha)
 {
-    pt_list* pt = malloc(sizeof(pt_list));
+    pt_list pt;
 
     for (int i = 0; i < PT_TIME_COUNT; i++) {
         if (i == ZUHR) {
@@ -135,25 +135,24 @@ pt_list* calc_pt_list(double tt, calc_list* ha)
         if (i < ZUHR) {
             h *= -1;
         }
-        pt->items[i] = pt_double_to_time(tt + h);
+        pt.items[i] = pt_double_to_time(tt + h);
     }
 
-    pt->items[ZUHR] = pt_double_to_time(tt + DESCEND_CORRECTION);
+    pt.items[ZUHR] = pt_double_to_time(tt + DESCEND_CORRECTION);
 
     return pt;
 }
 
-char* pt_to_string(pt_time* pt_time)
+pt_time_cstr pt_to_string(pt_time pt_time)
 {
-    char* str = malloc(sizeof(char) * 9);
-    if (str == NULL) { return NULL; }
-    sprintf(str, "%02d:%02d:%02d",
-        pt_time->HOUR, pt_time->MINUTE, pt_time->SECOND
+    pt_time_cstr str;
+    sprintf(str.data, "%02d:%02d:%02d",
+        pt_time.HOUR, pt_time.MINUTE, pt_time.SECOND
     );
     return str;
 }
 
-pt_list* pt_get_list(pt_args* args)
+pt_list pt_get_list(pt_args* args)
 {
     time_t now = time(NULL);
     struct tm *date = localtime(&now);
@@ -165,7 +164,7 @@ pt_list* pt_get_list(pt_args* args)
     double tt = calc_transit_time(args->longitude, et, tz);
     calc_list sa = calc_sun_altitudes(delta, args);
     calc_list ha = calc_hour_angles(delta, args->latitude, &sa);
-    pt_list* pt = calc_pt_list(tt, &ha);
+    pt_list pt = calc_pt_list(tt, &ha);
     return pt;
 }
 
@@ -175,20 +174,20 @@ pt_time* pt_next_prayer(pt_list* pt_list)
     struct tm date = *localtime(&now);
 
     for (int i = SUNRISE; i < PT_TIME_COUNT; i++) {
-        if (pt_list->items[i]->HOUR > date.tm_hour) {
-            return pt_list->items[i];
+        if (pt_list->items[i].HOUR > date.tm_hour) {
+            return &pt_list->items[i];
         }
-        if (pt_list->items[i]->HOUR == date.tm_hour) {
-            if (pt_list->items[i]->MINUTE > date.tm_min) {
-                return pt_list->items[i];
+        if (pt_list->items[i].HOUR == date.tm_hour) {
+            if (pt_list->items[i].MINUTE > date.tm_min) {
+                return &pt_list->items[i];
             }
-            if (pt_list->items[i]->MINUTE == date.tm_min) {
-                if (pt_list->items[i]->SECOND >= date.tm_sec) {
-                    return pt_list->items[i];
+            if (pt_list->items[i].MINUTE == date.tm_min) {
+                if (pt_list->items[i].SECOND >= date.tm_sec) {
+                    return &pt_list->items[i];
                 }
             }
         }
     }
 
-    return pt_list->items[FAJR];
+    return &pt_list->items[FAJR];
 }

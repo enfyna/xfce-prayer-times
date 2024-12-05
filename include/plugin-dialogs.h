@@ -21,17 +21,17 @@ typedef struct {
     GtkWidget* check;
 
     /* settings */
-    pt_args* pt_args;
+    pt_args pt_args;
     gdouble not_interval;
     gdouble aggressive_mode;
 
     gint timeout;
-    pt_list* pt_list;
+    pt_list pt_list;
 } pt_plugin;
 
 void set_tooltip_text(pt_plugin* pt);
 
-void pt_about();
+void pt_about(void);
 void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt);
 
 void pt_configure_response(GtkWidget* dialog, gint response, pt_plugin* pt);

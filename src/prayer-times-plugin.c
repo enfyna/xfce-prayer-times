@@ -8,7 +8,7 @@ static gboolean pt_update(gpointer data);
 static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin);
 
 static void construct_pt_plugin(XfcePanelPlugin* plugin);
-XFCE_PANEL_PLUGIN_REGISTER(construct_pt_plugin);
+XFCE_PANEL_PLUGIN_REGISTER(construct_pt_plugin)
 
 static void construct_pt_plugin(XfcePanelPlugin* plugin)
 {
@@ -23,7 +23,7 @@ static void construct_pt_plugin(XfcePanelPlugin* plugin)
 
     pt_read(pt);
 
-    pt->pt_list = pt_get_list(pt->pt_args);
+    pt->pt_list = pt_get_list(&pt->pt_args);
 
     set_tooltip_text(pt);
 
@@ -37,8 +37,6 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
 
     pt_plugin* pt = g_slice_new0(pt_plugin);
     pt->plugin = plugin;
-
-    pt->pt_args = malloc(sizeof(pt_args));
 
     pt->app = g_application_new("prayer.times", G_APPLICATION_DEFAULT_FLAGS);
     g_application_register(pt->app, NULL, NULL);
@@ -99,10 +97,10 @@ static gboolean pt_update(gpointer data)
     time_t now = time(NULL);
     struct tm* date = localtime(&now);
 
-    pt_time* next_prayer = pt_next_prayer(pt->pt_list);
+    pt_time* next_prayer = pt_next_prayer(&pt->pt_list);
 
     int next_prayer_seconds = next_prayer->HOUR * 3600 + next_prayer->MINUTE * 60 + next_prayer->SECOND;
-    if (next_prayer == pt->pt_list->items[FAJR]) {
+    if (next_prayer == &pt->pt_list.items[FAJR]) {
         next_prayer_seconds += 24 * 3600;
     }
     int current_seconds = date->tm_hour * 3600 + date->tm_min * 60 + date->tm_sec;
@@ -117,7 +115,7 @@ static gboolean pt_update(gpointer data)
     gtk_label_set_text(GTK_LABEL(pt->label), label_text);
 
     if (!prayed) {
-        if (pt->pt_list->items[FAJR] == next_prayer) {
+        if (&pt->pt_list.items[FAJR] == next_prayer) {
             // no need
         } else if (pt->aggressive_mode > 0 && time_left < pt->aggressive_mode) {
             send_notification(pt, label_text, 5);
@@ -141,11 +139,11 @@ void set_tooltip_text(pt_plugin* pt)
 
     time_t now = time(NULL);
     struct tm date = *localtime(&now);
-    pt_list* ptl = pt->pt_list;
+    pt_list ptl = pt->pt_list;
 
-    char* pt_str[PT_TIME_COUNT];
+    pt_time_cstr pt_str[PT_TIME_COUNT];
     for (int i = 0; i < PT_TIME_COUNT; i++) {
-        pt_str[i] = pt_to_string(ptl->items[i]);
+        pt_str[i] = pt_to_string(ptl.items[i]);
     }
 
     sprintf(tooltip_text, _(
@@ -158,11 +156,9 @@ void set_tooltip_text(pt_plugin* pt)
         "%2s : Maghrib   \n"
         "%2s : Isha        "),
         date.tm_mday, date.tm_mon + 1, date.tm_year + 1900, date.tm_zone,
-        pt_str[FAJR], pt_str[SUNRISE], pt_str[ZUHR], pt_str[ASR], pt_str[MAGHRIB], pt_str[ISHA]
+        pt_str[FAJR].data, pt_str[SUNRISE].data, pt_str[ZUHR].data, 
+        pt_str[ASR].data, pt_str[MAGHRIB].data, pt_str[ISHA].data
     );
 
     gtk_widget_set_tooltip_text(GTK_WIDGET(pt->hvbox), tooltip_text);
-    for (int i = 0; i < PT_TIME_COUNT; i++) {
-        free(pt_str[i]);
-    }
 }

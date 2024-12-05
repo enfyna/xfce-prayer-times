@@ -30,9 +30,9 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
     };
 
     gdouble* settings[] = {
-        &pt->pt_args->isha_angle, &pt->pt_args->fajr_angle,
-        &pt->pt_args->latitude, &pt->pt_args->longitude, 
-        &pt->pt_args->shadow_factor, &pt->pt_args->elevation,
+        &pt->pt_args.isha_angle, &pt->pt_args.fajr_angle,
+        &pt->pt_args.latitude, &pt->pt_args.longitude, 
+        &pt->pt_args.shadow_factor, &pt->pt_args.elevation,
         &pt->not_interval, &pt->aggressive_mode
     };
 
@@ -74,25 +74,21 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
     gtk_widget_show_all(dialog);
 }
 
-void pt_configure_response(
-    GtkWidget* dialog, gint response, pt_plugin* pt)
+void pt_configure_response(GtkWidget* dialog, gint response, pt_plugin* pt)
 {
-    gboolean result;
-
     if (response == GTK_RESPONSE_HELP) {
-        result = g_spawn_command_line_async(
-            "exo-open --launch WebBrowser " PLUGIN_WEBSITE,
-            NULL
+        gboolean result = g_spawn_command_line_async(
+            "exo-open --launch WebBrowser " PLUGIN_WEBSITE, NULL
         );
         if (G_UNLIKELY(result == FALSE))
-            g_warning("Unable to open the following url: %s",
-                PLUGIN_WEBSITE
+            g_warning(
+                "Unable to open the following url: %s", PLUGIN_WEBSITE
             );
     } else if (response == GTK_RESPONSE_APPLY) {
         gdouble* settings[] = {
-            &pt->pt_args->isha_angle, &pt->pt_args->fajr_angle,
-            &pt->pt_args->latitude, &pt->pt_args->longitude, 
-            &pt->pt_args->shadow_factor, &pt->pt_args->elevation,
+            &pt->pt_args.isha_angle, &pt->pt_args.fajr_angle,
+            &pt->pt_args.latitude, &pt->pt_args.longitude, 
+            &pt->pt_args.shadow_factor, &pt->pt_args.elevation,
             &pt->not_interval, &pt->aggressive_mode
         };
         GPtrArray* entry_array = g_object_get_data(
@@ -106,7 +102,7 @@ void pt_configure_response(
             gdouble res = atof(input);
             *settings[i] = res;
         }
-        pt_list* ptl = pt_get_list(pt->pt_args);
+        pt_list ptl = pt_get_list(&pt->pt_args);
         pt->pt_list = ptl;
 
         set_tooltip_text(pt);
@@ -137,19 +133,19 @@ void pt_read(pt_plugin* pt)
         if (G_LIKELY(rc != NULL)) {
             /* read the settings */
             pt->not_interval = xfce_rc_read_int_entry(rc, "not_interval", 600);
-            pt->pt_args->elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
-            pt->pt_args->shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
+            pt->pt_args.elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
+            pt->pt_args.shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
             pt->aggressive_mode = xfce_rc_read_int_entry(rc, "aggressive_mode", 0);
 
             const gchar *fajr = xfce_rc_read_entry(rc, "fajr_angle", "18");
             const gchar *isha = xfce_rc_read_entry(rc, "isha_angle", "17");
-            pt->pt_args->fajr_angle = atof(fajr);
-            pt->pt_args->isha_angle = atof(isha);
+            pt->pt_args.fajr_angle = atof(fajr);
+            pt->pt_args.isha_angle = atof(isha);
 
             const gchar *lat = xfce_rc_read_entry(rc, "latitude", "37.77");
             const gchar *lon = xfce_rc_read_entry(rc, "longitude", "29.08");
-            pt->pt_args->latitude = atof(lat);
-            pt->pt_args->longitude = atof(lon);
+            pt->pt_args.latitude = atof(lat);
+            pt->pt_args.longitude = atof(lon);
 
             xfce_rc_close(rc);
             return;
@@ -157,12 +153,12 @@ void pt_read(pt_plugin* pt)
     }
     DBG("Applying default settings");
 
-    pt->pt_args->fajr_angle = 18;
-    pt->pt_args->isha_angle = 17;
-    pt->pt_args->latitude = 37.77;
-    pt->pt_args->longitude = 29.08;
-    pt->pt_args->elevation = 350;
-    pt->pt_args->shadow_factor = 1;
+    pt->pt_args.fajr_angle = 18;
+    pt->pt_args.isha_angle = 17;
+    pt->pt_args.latitude = 37.77;
+    pt->pt_args.longitude = 29.08;
+    pt->pt_args.elevation = 350;
+    pt->pt_args.shadow_factor = 1;
     pt->not_interval = 600;
     pt->aggressive_mode = 0;
 }
@@ -187,16 +183,16 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
     if (G_LIKELY(rc != NULL)) {
         /* save the settings */
         DBG(".");
-        xfce_rc_write_int_entry(rc, "elevation", pt->pt_args->elevation);
-        xfce_rc_write_int_entry(rc, "shadow_factor", pt->pt_args->shadow_factor);
+        xfce_rc_write_int_entry(rc, "elevation", pt->pt_args.elevation);
+        xfce_rc_write_int_entry(rc, "shadow_factor", pt->pt_args.shadow_factor);
         xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
         xfce_rc_write_int_entry(rc, "aggressive_mode", pt->aggressive_mode);
 
         gchar fajr[100];
         gchar isha[100];
 
-        sprintf(fajr, "%lf", pt->pt_args->fajr_angle);
-        sprintf(isha, "%lf", pt->pt_args->isha_angle);
+        sprintf(fajr, "%lf", pt->pt_args.fajr_angle);
+        sprintf(isha, "%lf", pt->pt_args.isha_angle);
 
         xfce_rc_write_entry(rc, "fajr_angle", fajr);
         xfce_rc_write_entry(rc, "isha_angle", isha);
@@ -204,8 +200,8 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         gchar lat[100];
         gchar lon[100];
 
-        sprintf(lat, "%lf", pt->pt_args->latitude);
-        sprintf(lon, "%lf", pt->pt_args->longitude);
+        sprintf(lat, "%lf", pt->pt_args.latitude);
+        sprintf(lon, "%lf", pt->pt_args.longitude);
 
         xfce_rc_write_entry(rc, "latitude", lat);
         xfce_rc_write_entry(rc, "longitude", lon);
@@ -215,7 +211,7 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
     }
 }
 
-void pt_about()
+void pt_about(void)
 {
     const gchar* auth[] = { "enfyna <ramazanaslan21901@gmail.com>", NULL };
     gtk_show_about_dialog(
@@ -243,9 +239,6 @@ void pt_free(XfcePanelPlugin* plugin, pt_plugin* pt)
 
     /* destroy the panel widgets */
     gtk_widget_destroy(pt->hvbox);
-
-    if (G_LIKELY(pt->pt_list != NULL))
-        g_free(pt->pt_list);
 
     if (G_LIKELY(pt->app != NULL))
         g_object_unref(pt->app);
