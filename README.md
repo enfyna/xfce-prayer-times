@@ -42,9 +42,6 @@
        sudo ln -s /home/user/xfce-prayer-times/prayer-times-plugin.desktop /usr/share/xfce4/panel/plugins/prayer-times-plugin.desktop
        sudo ln -s /home/user/xfce-prayer-times/build/libprayer-times-plugin.so /usr/lib/xfce4/panel/plugins/libprayer-times-plugin.so 
 
-> [!NOTE]
-> You could move the files there but if you want to make changes creating symlink is more convenient.
-
 4. Restart xfce4-panel.
 
        xfce4-panel -r
