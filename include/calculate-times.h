@@ -31,6 +31,8 @@ typedef struct {
     char data[9];
 } pt_time_cstr;
 
+#define PT_ARGS_COUNT 6
+
 typedef struct {
     double fajr_angle;
     double isha_angle;

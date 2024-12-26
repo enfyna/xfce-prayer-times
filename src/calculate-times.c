@@ -150,7 +150,7 @@ pt_list calc_pt_list(double tt, calc_list* ha)
 pt_time_cstr pt_to_string(pt_time pt_time)
 {
     pt_time_cstr str;
-    sprintf(str.data, "%02d:%02d:%02d",
+    snprintf(str.data, 9, "%02d:%02d:%02d",
         pt_time.HOUR, pt_time.MINUTE, pt_time.SECOND
     );
     return str;
