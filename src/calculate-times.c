@@ -4,6 +4,7 @@
 #include <math.h>
 
 #include "calculate-times.h"
+#include "glib.h"
 
 double calc_julian_days(struct tm *date, int tz)
 {
@@ -102,6 +103,9 @@ calc_list calc_hour_angles(double delta, double lat, calc_list* sa)
         }
         double CHA = (sin(sa->items[i] * DEG_TO_RAD) 
             - sin(lat) * sin(delta)) / (cos(lat) * cos(delta));
+        // Make acos not return nan
+        if (CHA >= 1) { CHA = 1; g_error("High CHA value!"); } 
+        else if (CHA <= -1) { CHA = -1; g_error("Low CHA value!"); } 
         ha.items[i] = acos(CHA) * RAD_TO_DEG;
     }
     ha.items[MAGHRIB] = ha.items[SUNRISE];
