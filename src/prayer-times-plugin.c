@@ -4,34 +4,10 @@
 
 #include "plugin-dialogs.h"
 
-static gboolean pt_update(gpointer data);
-static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin);
-
-static void construct_pt_plugin(XfcePanelPlugin* plugin);
+void construct_pt_plugin(XfcePanelPlugin* plugin);
 XFCE_PANEL_PLUGIN_REGISTER(construct_pt_plugin)
 
-static void construct_pt_plugin(XfcePanelPlugin* plugin)
-{
-    const int pwd_len = strlen(getenv("PWD")) + 10;
-    char locale_dir[pwd_len];
-    snprintf(locale_dir, pwd_len, "%s/panel-po", getenv("PWD"));
-
-    bindtextdomain("xpt", locale_dir);
-    textdomain("xpt");
-
-    pt_plugin* pt = create_pt_plugin(plugin);
-
-    pt_read(pt);
-
-    pt->pt_list = pt_get_list(&pt->pt_args);
-
-    set_tooltip_text(pt);
-
-    pt_update(pt);
-    pt->timeout = g_timeout_add_seconds(1, pt_update, pt);
-}
-
-static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
+pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
 {
     GtkOrientation orientation = xfce_panel_plugin_get_orientation(plugin);
 
@@ -46,10 +22,10 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
     gtk_container_add(GTK_CONTAINER(pt->ebox), pt->hvbox);
 
     pt->label = gtk_label_new("");
-    gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->label, TRUE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->label, TRUE, FALSE, 4);
 
     pt->check = gtk_check_button_new();
-    gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->check, TRUE, FALSE, 5);
+    gtk_box_pack_start(GTK_BOX(pt->hvbox), pt->check, TRUE, FALSE, 4);
     gtk_widget_set_tooltip_text(GTK_WIDGET(pt->check), _("Check if prayed"));
 
     gtk_container_add(GTK_CONTAINER(plugin), pt->ebox);
@@ -69,7 +45,7 @@ static pt_plugin* create_pt_plugin(XfcePanelPlugin* plugin)
     return pt;
 }
 
-static void send_notification(pt_plugin* pt, char* time_left, int count)
+void send_notification(pt_plugin* pt, char* time_left, int count)
 {
     GNotification* notification = g_notification_new(_("Time left to next prayer:"));
 
@@ -85,10 +61,9 @@ static void send_notification(pt_plugin* pt, char* time_left, int count)
     g_object_unref(notification);
 }
 
-static gboolean pt_update(gpointer data)
+gboolean pt_update(gpointer data)
 {
     pt_plugin* pt = data;
-    char label_text[9];
 
     gboolean prayed = gtk_toggle_button_get_active(
         GTK_TOGGLE_BUTTON(pt->check)
@@ -111,7 +86,8 @@ static gboolean pt_update(gpointer data)
     int min = (time_left % 3600) / 60;
     int sec = time_left % 60;
 
-    sprintf(label_text, "%02d:%02d:%02d", hour, min, sec);
+    char label_text[9];
+    snprintf(label_text, 9, "%02d:%02d:%02d", hour, min, sec);
     gtk_label_set_text(GTK_LABEL(pt->label), label_text);
 
     if (!prayed) {
@@ -161,4 +137,25 @@ void set_tooltip_text(pt_plugin* pt)
     );
 
     gtk_widget_set_tooltip_text(GTK_WIDGET(pt->hvbox), tooltip_text);
+}
+
+void construct_pt_plugin(XfcePanelPlugin* plugin)
+{
+    const int pwd_len = strlen(getenv("PWD")) + 10;
+    char locale_dir[pwd_len];
+    snprintf(locale_dir, pwd_len, "%s/panel-po", getenv("PWD"));
+
+    bindtextdomain("xpt", locale_dir);
+    textdomain("xpt");
+
+    pt_plugin* pt = create_pt_plugin(plugin);
+
+    pt_read(pt);
+
+    pt->pt_list = pt_get_list(&pt->pt_args);
+
+    set_tooltip_text(pt);
+
+    pt_update(pt);
+    pt->timeout = g_timeout_add_seconds(1, pt_update, pt);
 }
