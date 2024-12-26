@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Prayer Times 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2024-11-05 17:14+0300\n"
-"PO-Revision-Date: 2024-11-05 14:00+0300\n"
+"PO-Revision-Date: 2024-12-26 16:10+0300\n"
 "Last-Translator: <ramazanaslan21901@gmail.com>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
@@ -16,63 +16,71 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/plugin-dialogs.c:18
+#: src/plugin-dialogs.c:24
 msgid "Prayer Times"
 msgstr "Vakit Namazları"
 
-#: src/plugin-dialogs.c:21
+#: src/plugin-dialogs.c:27
 msgid "Help"
 msgstr "Yardım"
 
-#: src/plugin-dialogs.c:22
+#: src/plugin-dialogs.c:28
 msgid "Save"
 msgstr "Kaydet"
 
-#: src/plugin-dialogs.c:33
+#: src/plugin-dialogs.c:43
 msgid "Isha Angle (degrees)"
 msgstr "Yatsı Açısı (derece)"
 
-#: src/plugin-dialogs.c:33
+#: src/plugin-dialogs.c:43
 msgid "Fajr Angle (degrees)"
 msgstr "Sabah Açısı (derece)"
 
-#: src/plugin-dialogs.c:34
+#: src/plugin-dialogs.c:44
 msgid "Latitude (degrees)"
 msgstr "Enlem (derece)"
 
-#: src/plugin-dialogs.c:34
+#: src/plugin-dialogs.c:44
 msgid "Longitude (degrees)"
 msgstr "Boylam (derece)"
 
-#: src/plugin-dialogs.c:35
+#: src/plugin-dialogs.c:45
 msgid "Shadow Factor [1, 2]"
 msgstr "Gölge Oranı [1, 2]"
 
-#: src/plugin-dialogs.c:35
+#: src/plugin-dialogs.c:45
 msgid "Elevation (m)"
 msgstr "Rakım (m)"
 
-#: src/plugin-dialogs.c:36
+#: src/plugin-dialogs.c:46
 msgid "Notification Interval (seconds)"
 msgstr "Bildirim Aralığı (saniye)"
 
-#: src/plugin-dialogs.c:37
+#: src/plugin-dialogs.c:47
 msgid "Aggressive Mode"
 msgstr "Agresif Mod"
 
-#: src/plugin-dialogs.c:236
+#: src/plugin-dialogs.c:82
+msgid "Calculation"
+msgstr "Hesaplamalar"
+
+#: src/plugin-dialogs.c:83
+msgid "Notification"
+msgstr "Bildirimler"
+
+#: src/plugin-dialogs.c:231
 msgid "Islamic prayer times plugin"
 msgstr "Vakit namazları eklentisi"
 
-#: src/prayer-times-plugin.c:68
+#: src/prayer-times-plugin.c:53
 msgid "Check if prayed"
 msgstr "Namazı kıldıysan işaretle"
 
-#: src/prayer-times-plugin.c:89
+#: src/prayer-times-plugin.c:74
 msgid "Time left to next prayer:"
 msgstr "Sonraki vakte kalan zaman: "
 
-#: src/prayer-times-plugin.c:162
+#: src/prayer-times-plugin.c:150
 #, c-format
 msgid ""
 "%02d.%02d.%d %s \n"
