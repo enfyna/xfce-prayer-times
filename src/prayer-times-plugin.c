@@ -111,7 +111,7 @@ gboolean pt_update(gpointer data)
 
 void set_tooltip_text(pt_plugin* pt)
 {
-    char tooltip_text[200];
+    static char tooltip_text[200];
 
     time_t now = time(NULL);
     struct tm date = *localtime(&now);
