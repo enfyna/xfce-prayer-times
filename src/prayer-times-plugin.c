@@ -90,7 +90,7 @@ gboolean pt_update(gpointer data)
     snprintf(label_text, 9, "%02d:%02d:%02d", hour, min, sec);
     gtk_label_set_text(GTK_LABEL(pt->label), label_text);
 
-    if (!prayed) {
+    if (!prayed && pt->not_interval > 0) {
         if (&pt->pt_list.items[FAJR] == next_prayer) {
             // no need
         } else if (pt->aggressive_mode > 0 && time_left < pt->aggressive_mode) {
