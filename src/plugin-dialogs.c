@@ -50,9 +50,9 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         _("Isha Angle (degrees)"), _("Fajr Angle (degrees)"),
         _("Latitude (degrees)"), _("Longitude (degrees)"),
         _("Shadow Factor [1, 2]"), _("Elevation (m)"),
-        _("Descent Correction (m)"),
-        _("Notification Interval (seconds)"),
-        _("Aggressive Mode")
+        _("Descent Correction (minutes)"),
+        _("Notification Interval (minutes)"),
+        _("Aggressive Mode (minutes)")
     };
 
     settings[0] = &pt->pt_args.isha_angle;

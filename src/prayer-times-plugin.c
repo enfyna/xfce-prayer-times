@@ -1,6 +1,7 @@
 #include <libxfce4panel/libxfce4panel.h>
 #include <libxfce4ui/libxfce4ui.h>
 #include <libintl.h>
+#include <math.h>
 
 #include "plugin-dialogs.h"
 
@@ -80,11 +81,12 @@ gboolean pt_update(gpointer data)
     }
     int current_seconds = date->tm_hour * 3600 + date->tm_min * 60 + date->tm_sec;
 
-    int time_left = next_prayer_seconds - current_seconds;
+    int time_left_seconds = next_prayer_seconds - current_seconds;
+    float time_left_minutes = time_left_seconds / 60.0;
 
-    int hour = time_left / 3600;
-    int min = (time_left % 3600) / 60;
-    int sec = time_left % 60;
+    int hour = time_left_seconds / 3600;
+    int min = (time_left_seconds % 3600) / 60;
+    int sec = time_left_seconds % 60;
 
     char label_text[9];
     snprintf(label_text, 9, "%02d:%02d:%02d", hour, min, sec);
@@ -93,14 +95,14 @@ gboolean pt_update(gpointer data)
     if (!prayed && pt->not_interval > 0) {
         if (&pt->pt_list.items[FAJR] == next_prayer) {
             // no need
-        } else if (pt->aggressive_mode > time_left) {
+        } else if (pt->aggressive_mode > time_left_minutes) {
             send_notification(pt, label_text, 5);
-        } else if (time_left % (int)pt->not_interval == 0) {
+        } else if (fmod(time_left_minutes, pt->not_interval) == 0) {
             send_notification(pt, label_text, 1);
         }
     }
 
-    if (time_left <= 0) {
+    if (time_left_seconds <= 0) {
         gtk_toggle_button_set_active(
             GTK_TOGGLE_BUTTON(pt->check), FALSE
         );
