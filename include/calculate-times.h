@@ -6,10 +6,6 @@
 #define RAD_TO_DEG (180.0 / PI)
 #define J2000_EPOCH 2451545.0
 
-// TODO:
-// Add to pt_args
-#define DESCEND_CORRECTION 0
-
 #define PT_TIME_COUNT 6
 
 typedef enum {
@@ -31,7 +27,7 @@ typedef struct {
     char data[9];
 } pt_time_cstr;
 
-#define PT_ARGS_COUNT 6
+#define PT_ARGS_COUNT 7
 
 typedef struct {
     double fajr_angle;
@@ -40,6 +36,7 @@ typedef struct {
     double longitude;
     double elevation;
     double shadow_factor;
+    double descend_correction;
 } pt_args; // find a better name ?
 
 // degrees

@@ -93,7 +93,7 @@ gboolean pt_update(gpointer data)
     if (!prayed && pt->not_interval > 0) {
         if (&pt->pt_list.items[FAJR] == next_prayer) {
             // no need
-        } else if (pt->aggressive_mode > 0 && time_left < pt->aggressive_mode) {
+        } else if (pt->aggressive_mode > time_left) {
             send_notification(pt, label_text, 5);
         } else if (time_left % (int)pt->not_interval == 0) {
             send_notification(pt, label_text, 1);

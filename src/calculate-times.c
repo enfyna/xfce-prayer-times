@@ -1,11 +1,10 @@
-#include <stdlib.h>
+#include <math.h>
 #include <stdio.h>
 #include <time.h>
-#include <math.h>
 
 #include "calculate-times.h"
 
-double calc_julian_days(struct tm *date, int tz)
+double calc_julian_days(struct tm* date, int tz)
 {
     int Y = date->tm_year + 1900;
     int M = date->tm_mon + 1;
@@ -68,7 +67,7 @@ double calc_transit_time(double lon, double et, double tz)
 
 calc_list calc_sun_altitudes(double delta, pt_args* args)
 {
-    calc_list sa = {0};
+    calc_list sa = { 0 };
 
     double SA_FAJR = -(args->fajr_angle);
     double SA_SUNRISE = -0.8333 - (0.0347 * sqrt(args->elevation));
@@ -83,7 +82,7 @@ calc_list calc_sun_altitudes(double delta, pt_args* args)
 
     sa.items[FAJR] = SA_FAJR;
     sa.items[SUNRISE] = SA_SUNRISE;
-    sa.items[ASR]= SA_ASR;
+    sa.items[ASR] = SA_ASR;
     sa.items[MAGHRIB] = SA_MAGHRIB;
     sa.items[ISHA] = SA_ISHA;
 
@@ -92,7 +91,7 @@ calc_list calc_sun_altitudes(double delta, pt_args* args)
 
 calc_list calc_hour_angles(double delta, double lat, calc_list* sa)
 {
-    calc_list ha = {0};
+    calc_list ha = { 0 };
     lat *= DEG_TO_RAD;
     delta *= DEG_TO_RAD;
 
@@ -126,7 +125,7 @@ pt_time pt_double_to_time(double time)
     return pt;
 }
 
-pt_list calc_pt_list(double tt, calc_list* ha)
+pt_list calc_pt_list(double tt, calc_list* ha, double descend_correction)
 {
     pt_list pt;
 
@@ -141,7 +140,7 @@ pt_list calc_pt_list(double tt, calc_list* ha)
         pt.items[i] = pt_double_to_time(tt + h);
     }
 
-    pt.items[ZUHR] = pt_double_to_time(tt + DESCEND_CORRECTION);
+    pt.items[ZUHR] = pt_double_to_time(tt + descend_correction / 60.0);
 
     return pt;
 }
@@ -167,7 +166,7 @@ pt_list pt_get_list(pt_args* args)
     double tt = calc_transit_time(args->longitude, et, tz);
     calc_list sa = calc_sun_altitudes(delta, args);
     calc_list ha = calc_hour_angles(delta, args->latitude, &sa);
-    pt_list pt = calc_pt_list(tt, &ha);
+    pt_list pt = calc_pt_list(tt, &ha, args->descend_correction);
     return pt;
 }
 

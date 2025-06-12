@@ -1,4 +1,5 @@
 #include <libxfce4ui/libxfce4ui.h>
+#include <stddef.h>
 
 #include "plugin-dialogs.h"
 
@@ -15,9 +16,8 @@ GtkWidget* entries[SETTINGS_COUNT];
         gtk_widget_set_margin_end(widget, margin);    \
     } while (0)
 
-#define write_entry(var)                           \
+#define write_entry(buf, var)                      \
     do {                                           \
-        gchar buf[24];                             \
         snprintf(buf, 24, "%lf", pt->pt_args.var); \
         xfce_rc_write_entry(rc, #var, buf);        \
     } while (0)
@@ -50,6 +50,7 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         _("Isha Angle (degrees)"), _("Fajr Angle (degrees)"),
         _("Latitude (degrees)"), _("Longitude (degrees)"),
         _("Shadow Factor [1, 2]"), _("Elevation (m)"),
+        _("Descent Correction (m)"),
         _("Notification Interval (seconds)"),
         _("Aggressive Mode")
     };
@@ -60,11 +61,12 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
     settings[3] = &pt->pt_args.longitude;
     settings[4] = &pt->pt_args.shadow_factor;
     settings[5] = &pt->pt_args.elevation;
-    settings[6] = &pt->not_interval;
-    settings[7] = &pt->aggressive_mode;
+    settings[6] = &pt->pt_args.descend_correction;
+    settings[7] = &pt->not_interval;
+    settings[8] = &pt->aggressive_mode;
 
     char dts[10];
-    for (int i = 0; i < SETTINGS_COUNT; i++) {
+    for (size_t i = 0; i < SETTINGS_COUNT; i++) {
         GtkWidget* input_row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
         GtkWidget* label = gtk_label_new(labels[i]);
@@ -153,8 +155,10 @@ void pt_read(pt_plugin* pt)
 
             const gchar* fajr = xfce_rc_read_entry(rc, "fajr_angle", "18");
             const gchar* isha = xfce_rc_read_entry(rc, "isha_angle", "17");
+            const gchar* descent = xfce_rc_read_entry(rc, "descend_correction", "0");
             pt->pt_args.fajr_angle = atof(fajr);
             pt->pt_args.isha_angle = atof(isha);
+            pt->pt_args.descend_correction = atof(descent);
 
             const gchar* lat = xfce_rc_read_entry(rc, "latitude", "37.77");
             const gchar* lon = xfce_rc_read_entry(rc, "longitude", "29.08");
@@ -173,6 +177,7 @@ void pt_read(pt_plugin* pt)
     pt->pt_args.longitude = 29.08;
     pt->pt_args.elevation = 350;
     pt->pt_args.shadow_factor = 1;
+    pt->pt_args.descend_correction = 0;
     pt->not_interval = 600;
     pt->aggressive_mode = 0;
 }
@@ -201,10 +206,12 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
         xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
         xfce_rc_write_int_entry(rc, "aggressive_mode", pt->aggressive_mode);
 
-        write_entry(fajr_angle);
-        write_entry(isha_angle);
-        write_entry(latitude);
-        write_entry(longitude);
+        gchar buf[24];
+        write_entry(buf, descend_correction);
+        write_entry(buf, fajr_angle);
+        write_entry(buf, isha_angle);
+        write_entry(buf, latitude);
+        write_entry(buf, longitude);
 
         /* close the rc file */
         xfce_rc_close(rc);
