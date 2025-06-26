@@ -145,12 +145,16 @@ pt_list calc_pt_list(double tt, calc_list* ha, double descend_correction)
     return pt;
 }
 
-pt_time_cstr pt_to_string(pt_time pt_time)
+pt_time_cstr pt_to_string(pt_time pt_time, int show_seconds)
 {
     pt_time_cstr str;
-    snprintf(str.data, 9, "%02d:%02d:%02d",
-        pt_time.HOUR, pt_time.MINUTE, pt_time.SECOND
-    );
+    if (show_seconds) {
+        snprintf(str.data, 9, "%02d:%02d:%02d",
+            pt_time.HOUR, pt_time.MINUTE, pt_time.SECOND);
+    } else {
+        snprintf(str.data, 9, "%02d:%02d",
+            pt_time.HOUR, pt_time.MINUTE);
+    }
     return str;
 }
 

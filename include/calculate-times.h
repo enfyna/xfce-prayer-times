@@ -48,7 +48,7 @@ typedef struct {
     pt_time items[PT_TIME_COUNT];
 } pt_list;
 
-pt_time_cstr pt_to_string(pt_time time);
+pt_time_cstr pt_to_string(pt_time time, int show_seconds);
 pt_time pt_double_to_time(double time);
 
 pt_list pt_get_list(pt_args* args);

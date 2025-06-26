@@ -89,7 +89,11 @@ gboolean pt_update(gpointer data)
     int sec = time_left_seconds % 60;
 
     char label_text[9];
-    snprintf(label_text, 9, "%02d:%02d:%02d", hour, min, sec);
+    if (pt->show_seconds) {
+        snprintf(label_text, 9, "%02d:%02d:%02d", hour, min, sec);
+    } else {
+        snprintf(label_text, 9, "%02d:%02d", hour, min);
+    }
     gtk_label_set_text(GTK_LABEL(pt->label), label_text);
 
     if (!prayed && pt->not_interval > 0) {
@@ -121,7 +125,7 @@ void set_tooltip_text(pt_plugin* pt)
 
     pt_time_cstr pt_str[PT_TIME_COUNT];
     for (int i = 0; i < PT_TIME_COUNT; i++) {
-        pt_str[i] = pt_to_string(ptl.items[i]);
+        pt_str[i] = pt_to_string(ptl.items[i], pt->show_seconds);
     }
 
     sprintf(tooltip_text, _(

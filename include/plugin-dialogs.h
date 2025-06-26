@@ -24,6 +24,7 @@ typedef struct {
     pt_args pt_args;
     gdouble not_interval;
     gdouble aggressive_mode;
+    gdouble show_seconds;
 
     gint timeout;
     pt_list pt_list;
