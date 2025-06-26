@@ -143,9 +143,10 @@ void set_tooltip_text(pt_plugin* pt)
 
 void construct_pt_plugin(XfcePanelPlugin* plugin)
 {
-    const int pwd_len = strlen(getenv("PWD")) + 10;
+    const char* pwd = getenv("PWD");
+    const int pwd_len = strlen(pwd);
     char locale_dir[pwd_len];
-    snprintf(locale_dir, pwd_len, "%s/panel-po", getenv("PWD"));
+    snprintf(locale_dir, pwd_len + 10, "%s/panel-po", pwd);
 
     bindtextdomain("xpt", locale_dir);
     textdomain("xpt");
