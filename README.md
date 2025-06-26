@@ -60,16 +60,13 @@
 > [!CAUTION]
 > Calculated prayer times probably will not be exact. In some locations the local scholar usually will adjust the schedule forward or backward for a few minutes.
 
-> [!NOTE]
-> Screenshots are taken with [Chicago95](https://github.com/grassmunk/Chicago95) XFCE theme.
-
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/4bd3cf57-6ee4-41a3-99a0-b75454488226" width=40%>
+    <img src="https://github.com/user-attachments/assets/f067e60d-905a-4774-83ce-f5e736926702" width=40%>
 </p>
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/ff9aecc1-4040-45aa-9e85-55ec7a9fbe4d" width=20%>
-    <img src="https://github.com/user-attachments/assets/c6b65e04-bdf7-40fb-9117-a73b422c53c0" width=20%>
+    <img src="https://github.com/user-attachments/assets/067c3cf8-f476-4c45-b1db-dfe806954d9a" width=20%>
+    <img src="https://github.com/user-attachments/assets/a927a47f-3e77-4848-8a65-6638390ae17a" width=20%>
 </p>
 
 Plugin label will show the time left to the next calculated prayer time. If the plugin checkbox is not checked the plugin will send a notification each notification interval. After the checkbox is checked notifications will stop until the next prayer time. 
@@ -80,7 +77,8 @@ Plugin label will show the time left to the next calculated prayer time. If the 
 ### Properties
 
 <p align="center">
-     <img src="https://github.com/user-attachments/assets/0d42aa30-d698-4d48-9cda-02b9b1a8d44c" width=50%>
+  <img src="https://github.com/user-attachments/assets/48463344-73cb-40f2-9c89-99a4003c2f9b" width=40%>
+  <img src="https://github.com/user-attachments/assets/72885bf7-636e-4e14-b928-9b394b91cc31" width=40%>
 </p>
 
 
