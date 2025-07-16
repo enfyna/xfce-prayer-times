@@ -2,18 +2,38 @@
 #include <libxfce4ui/libxfce4ui.h>
 #include <stddef.h>
 
+#include "calculate-times.h"
+#include "glib.h"
 #include "gtk/gtk.h"
+#include "libxfce4util/libxfce4util.h"
 #include "plugin-dialogs.h"
 
 #define SETTINGS_COUNT (PT_ARGS_COUNT + 3) // 3 = not interval + aggressive mode + show_seconds
 
+#define TW_ENTRY_INT 0
+#define TW_ENTRY_FLOAT 1
+#define TW_CHECKBOX 2
+
+#define CT_CALC 0
+#define CT_NOT 1
+
 typedef struct {
+    guchar category;
+    guchar t_widget;
     GtkWidget* widget;
-    size_t t_widget;
     gdouble* ptr;
 } Conf;
 
-Conf config[SETTINGS_COUNT] = { 0 };
+Conf config[SETTINGS_COUNT] = {
+    [0] = { .t_widget = TW_ENTRY_FLOAT },
+    [1] = { .t_widget = TW_ENTRY_FLOAT },
+    [2] = { .t_widget = TW_ENTRY_FLOAT },
+    [3] = { .t_widget = TW_ENTRY_FLOAT },
+
+    [7] = { .category = CT_NOT },
+    [8] = { .category = CT_NOT },
+    [9] = { .t_widget = TW_CHECKBOX, .category = CT_NOT }
+};
 
 #define set_margin(widget, margin)                    \
     do {                                              \
@@ -23,10 +43,10 @@ Conf config[SETTINGS_COUNT] = { 0 };
         gtk_widget_set_margin_end(widget, margin);    \
     } while (0)
 
-#define write_entry(buf, var)                      \
-    do {                                           \
-        snprintf(buf, 24, "%lf", pt->pt_args.var); \
-        xfce_rc_write_entry(rc, #var, buf);        \
+#define write_entry(buf, name, val)         \
+    do {                                    \
+        snprintf(buf, 24, "%lf", val);      \
+        xfce_rc_write_entry(rc, name, buf); \
     } while (0)
 
 void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
@@ -66,17 +86,13 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         _("Show seconds"),
     };
 
-    config[0].ptr = &pt->pt_args.isha_angle;
-    config[1].ptr = &pt->pt_args.fajr_angle;
-    config[2].ptr = &pt->pt_args.latitude;
-    config[3].ptr = &pt->pt_args.longitude;
-    config[4].ptr = &pt->pt_args.shadow_factor;
-    config[5].ptr = &pt->pt_args.elevation;
-    config[6].ptr = &pt->pt_args.descend_correction;
-    config[7].ptr = &pt->not_interval;
-    config[8].ptr = &pt->aggressive_mode;
-    config[9].ptr = &pt->show_seconds;
-    config[9].t_widget = 1;
+    for (size_t i = 0; i < PT_ARGS_COUNT; i++) {
+        config[i].ptr = &pt->pt_args.items[i];
+    }
+
+    for (size_t i = PT_ARGS_COUNT; i < SETTINGS_COUNT; i++) {
+        config[i].ptr = &pt->pl_args[i - PT_ARGS_COUNT];
+    }
 
     char dts[10];
     for (size_t i = 0; i < SETTINGS_COUNT; i++) {
@@ -87,14 +103,16 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         gtk_label_set_xalign(GTK_LABEL(label), -1);
 
         GtkWidget* widget;
+        size_t type = config[i].t_widget;
 
-        if (config[i].t_widget == 1) {
+        if (type == TW_CHECKBOX) {
             widget = gtk_check_button_new();
             gtk_toggle_button_set_active(
                 GTK_TOGGLE_BUTTON(widget), *config[i].ptr > 0);
-        } else if (config[i].t_widget == 0) {
+        } else if (type == TW_ENTRY_INT || type == TW_ENTRY_FLOAT) {
             widget = gtk_entry_new();
-            snprintf(dts, 10, i < 4 ? "%.2lf" : "%.0f", *config[i].ptr);
+            snprintf(dts, 10,
+                type == TW_ENTRY_INT ? "%.0f" : "%.2f", *config[i].ptr);
             gtk_entry_set_text(GTK_ENTRY(widget), dts);
             gtk_entry_set_alignment(GTK_ENTRY(widget), GTK_ALIGN_END);
         } else {
@@ -104,10 +122,12 @@ void pt_configure(XfcePanelPlugin* plugin, pt_plugin* pt)
         gtk_box_pack_start(GTK_BOX(input_row), label, TRUE, TRUE, 0);
         gtk_box_pack_start(GTK_BOX(input_row), widget, FALSE, FALSE, 0);
 
-        if (i < PT_ARGS_COUNT) {
+        if (config[i].category == CT_CALC) {
             gtk_box_pack_start(GTK_BOX(pt_settings_box), input_row, FALSE, FALSE, 0);
-        } else {
+        } else if (config[i].category == CT_NOT) {
             gtk_box_pack_start(GTK_BOX(nt_settings_box), input_row, FALSE, FALSE, 0);
+        } else {
+            assert(FALSE && "Unreachable: undefined category");
         }
 
         config[i].widget = widget;
@@ -137,10 +157,11 @@ void pt_configure_response(GtkWidget* dialog, gint response, pt_plugin* pt)
     case GTK_RESPONSE_APPLY: {
         for (guint i = 0; i < SETTINGS_COUNT; i++) {
             GtkWidget* widget = config[i].widget;
-            if (config[i].t_widget == 1) {
+            if (config[i].t_widget == TW_CHECKBOX) {
                 const gboolean input = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget));
                 *config[i].ptr = input;
-            } else if (config[i].t_widget == 0) {
+            } else if (config[i].t_widget == TW_ENTRY_INT
+                || config[i].t_widget == TW_ENTRY_FLOAT) {
                 const gchar* input = gtk_entry_get_text(GTK_ENTRY(widget));
                 gdouble res = atof(input);
                 *config[i].ptr = res;
@@ -179,23 +200,23 @@ void pt_read(pt_plugin* pt)
 
         if (G_LIKELY(rc != NULL)) {
             /* read the settings */
-            pt->not_interval = xfce_rc_read_int_entry(rc, "not_interval", 600);
-            pt->pt_args.elevation = xfce_rc_read_int_entry(rc, "elevation", 350);
-            pt->pt_args.shadow_factor = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
-            pt->aggressive_mode = xfce_rc_read_int_entry(rc, "aggressive_mode", 0);
-            pt->show_seconds = xfce_rc_read_int_entry(rc, "show_seconds", 0);
+            elevation(&pt->pt_args) = xfce_rc_read_int_entry(rc, "elevation", 350);
+            shadow_factor(&pt->pt_args) = xfce_rc_read_int_entry(rc, "shadow_factor", 1);
+            not_interval(pt->pl_args) = xfce_rc_read_int_entry(rc, "not_interval", 600);
+            aggressive_mode(pt->pl_args) = xfce_rc_read_int_entry(rc, "aggressive_mode", 0);
+            show_seconds(pt->pl_args) = xfce_rc_read_int_entry(rc, "show_seconds", 0);
 
             const gchar* fajr = xfce_rc_read_entry(rc, "fajr_angle", "18");
             const gchar* isha = xfce_rc_read_entry(rc, "isha_angle", "17");
             const gchar* descent = xfce_rc_read_entry(rc, "descend_correction", "0");
-            pt->pt_args.fajr_angle = atof(fajr);
-            pt->pt_args.isha_angle = atof(isha);
-            pt->pt_args.descend_correction = atof(descent);
+            fajr_angle(&pt->pt_args) = atof(fajr);
+            isha_angle(&pt->pt_args) = atof(isha);
+            descend_correction(&pt->pt_args) = atof(descent);
 
             const gchar* lat = xfce_rc_read_entry(rc, "latitude", "37.77");
             const gchar* lon = xfce_rc_read_entry(rc, "longitude", "29.08");
-            pt->pt_args.latitude = atof(lat);
-            pt->pt_args.longitude = atof(lon);
+            latitude(&pt->pt_args) = atof(lat);
+            longitude(&pt->pt_args) = atof(lon);
 
             xfce_rc_close(rc);
             return;
@@ -203,16 +224,16 @@ void pt_read(pt_plugin* pt)
     }
     DBG("[INFO] Applying default settings");
 
-    pt->pt_args.fajr_angle = 18;
-    pt->pt_args.isha_angle = 17;
-    pt->pt_args.latitude = 37.77;
-    pt->pt_args.longitude = 29.08;
-    pt->pt_args.elevation = 350;
-    pt->pt_args.shadow_factor = 1;
-    pt->pt_args.descend_correction = 0;
-    pt->not_interval = 600;
-    pt->aggressive_mode = 0;
-    pt->show_seconds = 0;
+    isha_angle(&pt->pt_args) = 17;
+    fajr_angle(&pt->pt_args) = 18;
+    latitude(&pt->pt_args) = 37.77;
+    longitude(&pt->pt_args) = 29.08;
+    shadow_factor(&pt->pt_args) = 1;
+    elevation(&pt->pt_args) = 350;
+    descend_correction(&pt->pt_args) = 0;
+    not_interval(pt->pl_args) = 60;
+    aggressive_mode(pt->pl_args) = 0;
+    show_seconds(pt->pl_args) = 0;
 }
 
 void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
@@ -234,18 +255,18 @@ void pt_save(XfcePanelPlugin* plugin, pt_plugin* pt)
 
     if (G_LIKELY(rc != NULL)) {
         DBG("[INFO] Saving to config file");
-        xfce_rc_write_int_entry(rc, "elevation", pt->pt_args.elevation);
-        xfce_rc_write_int_entry(rc, "shadow_factor", pt->pt_args.shadow_factor);
-        xfce_rc_write_int_entry(rc, "not_interval", pt->not_interval);
-        xfce_rc_write_int_entry(rc, "aggressive_mode", pt->aggressive_mode);
-        xfce_rc_write_int_entry(rc, "show_seconds", pt->show_seconds);
+        xfce_rc_write_int_entry(rc, "elevation", elevation(&pt->pt_args));
+        xfce_rc_write_int_entry(rc, "shadow_factor", shadow_factor(&pt->pt_args));
+        xfce_rc_write_int_entry(rc, "not_interval", not_interval(pt->pl_args));
+        xfce_rc_write_int_entry(rc, "aggressive_mode", aggressive_mode(pt->pl_args));
+        xfce_rc_write_int_entry(rc, "show_seconds", show_seconds(pt->pl_args));
 
         gchar buf[24];
-        write_entry(buf, descend_correction);
-        write_entry(buf, fajr_angle);
-        write_entry(buf, isha_angle);
-        write_entry(buf, latitude);
-        write_entry(buf, longitude);
+        write_entry(buf, "descend_correction", descend_correction(&pt->pt_args));
+        write_entry(buf, "isha_angle", isha_angle(&pt->pt_args));
+        write_entry(buf, "fajr_angle", fajr_angle(&pt->pt_args));
+        write_entry(buf, "latitude", latitude(&pt->pt_args));
+        write_entry(buf, "longitude", longitude(&pt->pt_args));
 
         /* close the rc file */
         xfce_rc_close(rc);

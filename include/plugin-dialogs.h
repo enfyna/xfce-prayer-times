@@ -9,6 +9,10 @@
 #define PACKAGE_NAME "PrayerTimes"
 #define PLUGIN_WEBSITE "https://github.com/enfyna/xfce-prayer-times"
 
+#define not_interval(args) (args)[0]
+#define aggressive_mode(args) (args)[1]
+#define show_seconds(args) (args)[2]
+
 typedef struct {
     XfcePanelPlugin* plugin;
 
@@ -20,11 +24,22 @@ typedef struct {
     GtkWidget* label;
     GtkWidget* check;
 
-    /* settings */
+    /*
+     * 0: isha_angle
+     * 1: fajr_angle;
+     * 2: latitude
+     * 3: longitude;
+     * 4: shadow_factor
+     * 5: elevation
+     * 6: descend_correction
+     */
     pt_args pt_args;
-    gdouble not_interval;
-    gdouble aggressive_mode;
-    gdouble show_seconds;
+    /*
+     * 0: not_interval;
+     * 1: aggressive_mode;
+     * 2: show_seconds;
+     */
+    gdouble pl_args[3];
 
     gint timeout;
     pt_list pt_list;

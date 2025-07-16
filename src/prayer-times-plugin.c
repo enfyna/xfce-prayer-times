@@ -3,6 +3,7 @@
 #include <libintl.h>
 #include <math.h>
 
+#include "calculate-times.h"
 #include "plugin-dialogs.h"
 
 void construct_pt_plugin(XfcePanelPlugin* plugin);
@@ -76,7 +77,7 @@ gboolean pt_update(gpointer data)
     pt_time* next_prayer = pt_next_prayer(&pt->pt_list);
 
     int next_prayer_seconds = next_prayer->HOUR * 3600 + next_prayer->MINUTE * 60 + next_prayer->SECOND;
-    if (next_prayer == &pt->pt_list.items[FAJR]) {
+    if (next_prayer == &fajr(pt->pt_list)) {
         next_prayer_seconds += 24 * 3600;
     }
     int current_seconds = date->tm_hour * 3600 + date->tm_min * 60 + date->tm_sec;
@@ -89,19 +90,19 @@ gboolean pt_update(gpointer data)
     int sec = time_left_seconds % 60;
 
     char label_text[9];
-    if (pt->show_seconds) {
+    if (show_seconds(pt->pl_args)) {
         snprintf(label_text, 9, "%02d:%02d:%02d", hour, min, sec);
     } else {
         snprintf(label_text, 9, "%02d:%02d", hour, min);
     }
     gtk_label_set_text(GTK_LABEL(pt->label), label_text);
 
-    if (!prayed && pt->not_interval > 0) {
-        if (&pt->pt_list.items[FAJR] == next_prayer) {
+    if (!prayed && not_interval(pt->pl_args) > 0) {
+        if (&fajr(pt->pt_list) == next_prayer) {
             // no need
-        } else if (pt->aggressive_mode > time_left_minutes) {
+        } else if (aggressive_mode(pt->pl_args) > time_left_minutes) {
             send_notification(pt, label_text, 5);
-        } else if (fmod(time_left_minutes, pt->not_interval) == 0) {
+        } else if (fmod(time_left_minutes, not_interval(pt->pl_args)) == 0) {
             send_notification(pt, label_text, 1);
         }
     }
@@ -125,18 +126,18 @@ void set_tooltip_text(pt_plugin* pt)
 
     pt_time_cstr pt_str[PT_TIME_COUNT];
     for (int i = 0; i < PT_TIME_COUNT; i++) {
-        pt_str[i] = pt_to_string(ptl.items[i], pt->show_seconds);
+        pt_str[i] = pt_to_string(ptl.items[i], show_seconds(pt->pl_args));
     }
 
-    sprintf(tooltip_text, _(
-        "%02d.%02d.%d %s \n"
-        "----------------\n"
-        "%2s : Fajr      \n"
-        "%2s : Sunrise   \n"
-        "%2s : Zuhr      \n"
-        "%2s : Asr       \n"
-        "%2s : Maghrib   \n"
-        "%2s : Isha        "),
+    sprintf(tooltip_text,
+        _("%02d.%02d.%d %s \n"
+          "----------------\n"
+          "%2s : Fajr      \n"
+          "%2s : Sunrise   \n"
+          "%2s : Zuhr      \n"
+          "%2s : Asr       \n"
+          "%2s : Maghrib   \n"
+          "%2s : Isha        "),
         date.tm_mday, date.tm_mon + 1, date.tm_year + 1900, date.tm_zone,
         pt_str[FAJR].data, pt_str[SUNRISE].data, pt_str[ZUHR].data, 
         pt_str[ASR].data, pt_str[MAGHRIB].data, pt_str[ISHA].data

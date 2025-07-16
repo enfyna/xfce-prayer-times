@@ -19,25 +19,21 @@ double calc_julian_days(struct tm* date, int tz)
     }
     int A = Y / 100.0;
     int B = 2 - A + (A / 4.0);
-    double JD = 1720994.5 
-        + (int)(365.25 * Y) 
-        + (int)(30.6001 * (M + 1)) 
-        + B + D 
-        + ((H * 3600 + m * 60 + s) / 86400.0) 
-        - (tz / 24.0)
-    ;
-    return JD;
+    return 1720994.5
+        + (int)(365.25 * Y)
+        + (int)(30.6001 * (M + 1))
+        + B + D
+        + ((H * 3600 + m * 60 + s) / 86400.0)
+        - (tz / 24.0);
 }
 
 double calc_sun_declination(double jd)
 {
     double T = 2 * PI * (jd - J2000_EPOCH) / 365.25;
-    double Delta = 0.37877 
-        + 23.264  * sin((1 * 57.297 * T - 79.547) * DEG_TO_RAD) 
-        + 0.3812  * sin((2 * 57.297 * T - 82.682) * DEG_TO_RAD) 
-        + 0.17132 * sin((3 * 57.297 * T - 59.722) * DEG_TO_RAD)
-    ;
-    return Delta;
+    return 0.37877
+        + 23.264 * sin((1 * 57.297 * T - 79.547) * DEG_TO_RAD)
+        + 0.3812 * sin((2 * 57.297 * T - 82.682) * DEG_TO_RAD)
+        + 0.17132 * sin((3 * 57.297 * T - 59.722) * DEG_TO_RAD);
 }
 
 double calc_equation_of_time(double jd)
@@ -47,44 +43,42 @@ double calc_equation_of_time(double jd)
     double L0 = 280.46607 + 36000.7698 * U;
     L0 *= DEG_TO_RAD;
 
-    double ET1000 = 
-        - (7146 -  62 * U) * cos(    L0) 
-        - (  29 +   5 * U) * cos(2 * L0) 
-        + ( 320 -   4 * U) * cos(3 * L0) 
-        - (1789 + 237 * U) * sin(    L0) 
-        + (9934 -  14 * U) * sin(2 * L0) 
-        + (  74 +  10 * U) * sin(3 * L0) 
-        - ( 212          ) * sin(4 * L0);
-    double ET = ET1000 / 1000;
-    return ET;
+    double ET1000 = -(7146 - 62 * U) * cos(L0)
+        - (29 + 5 * U) * cos(2 * L0)
+        + (320 - 4 * U) * cos(3 * L0)
+        - (1789 + 237 * U) * sin(L0)
+        + (9934 - 14 * U) * sin(2 * L0)
+        + (74 + 10 * U) * sin(3 * L0)
+        - (212) * sin(4 * L0);
+
+    return ET1000 / 1000.0;
 }
 
 double calc_transit_time(double lon, double et, double tz)
 {
-    double TT = 12 + tz - (lon / 15) - (et / 60);
-    return TT;
+    return 12 + tz - (lon / 15) - (et / 60);
 }
 
 calc_list calc_sun_altitudes(double delta, pt_args* args)
 {
     calc_list sa = { 0 };
 
-    double SA_FAJR = -(args->fajr_angle);
-    double SA_SUNRISE = -0.8333 - (0.0347 * sqrt(args->elevation));
+    double SA_FAJR = -(fajr_angle(args));
+    double SA_SUNRISE = -0.8333 - (0.0347 * sqrt(elevation(args)));
 
-    double abs_res = fabs(delta - args->latitude);
+    double abs_res = fabs(delta - latitude(args));
     double tan_res = tan(abs_res * DEG_TO_RAD);
-    double add_shadow = tan_res + args->shadow_factor;
+    double add_shadow = tan_res + shadow_factor(args);
     double SA_ASR = atan2(1, add_shadow) * RAD_TO_DEG;
 
     double SA_MAGHRIB = SA_SUNRISE;
-    double SA_ISHA = -(args->isha_angle);
+    double SA_ISHA = -(isha_angle(args));
 
-    sa.items[FAJR] = SA_FAJR;
-    sa.items[SUNRISE] = SA_SUNRISE;
-    sa.items[ASR] = SA_ASR;
-    sa.items[MAGHRIB] = SA_MAGHRIB;
-    sa.items[ISHA] = SA_ISHA;
+    fajr(sa) = SA_FAJR;
+    sunrise(sa) = SA_SUNRISE;
+    asr(sa) = SA_ASR;
+    maghrib(sa) = SA_MAGHRIB;
+    isha(sa) = SA_ISHA;
 
     return sa;
 }
@@ -99,30 +93,30 @@ calc_list calc_hour_angles(double delta, double lat, calc_list* sa)
         if (i == MAGHRIB) {
             continue;
         }
-        double CHA = (sin(sa->items[i] * DEG_TO_RAD) 
-            - sin(lat) * sin(delta)) / (cos(lat) * cos(delta));
+        double CHA = (sin(sa->items[i] * DEG_TO_RAD)
+                         - sin(lat) * sin(delta))
+            / (cos(lat) * cos(delta));
         // Make acos not return nan
         if (CHA >= 1) { CHA = 1; fprintf(stderr, "[ERROR] High CHA value!\n"); } 
         else if (CHA <= -1) { CHA = -1; fprintf(stderr, "[ERROR] Low CHA value!\n"); } 
         ha.items[i] = acos(CHA) * RAD_TO_DEG;
     }
-    ha.items[MAGHRIB] = ha.items[SUNRISE];
+    maghrib(ha) = sunrise(ha);
 
     return ha;
 }
 
 pt_time pt_double_to_time(double time)
 {
-    pt_time pt;
-
     int hours = (int)time;
     int minutes = (int)((time - hours) * 60);
     int seconds = (int)((time - hours - (minutes / 60.0)) * 3600);
 
-    pt.HOUR = hours;
-    pt.MINUTE = minutes;
-    pt.SECOND = seconds;
-    return pt;
+    return (pt_time) {
+        .HOUR = hours,
+        .MINUTE = minutes,
+        .SECOND = seconds
+    };
 }
 
 pt_list calc_pt_list(double tt, calc_list* ha, double descend_correction)
@@ -140,7 +134,7 @@ pt_list calc_pt_list(double tt, calc_list* ha, double descend_correction)
         pt.items[i] = pt_double_to_time(tt + h);
     }
 
-    pt.items[ZUHR] = pt_double_to_time(tt + descend_correction / 60.0);
+    zuhr(pt) = pt_double_to_time(tt + descend_correction / 60.0);
 
     return pt;
 }
@@ -161,17 +155,16 @@ pt_time_cstr pt_to_string(pt_time pt_time, int show_seconds)
 pt_list pt_get_list(pt_args* args)
 {
     time_t now = time(NULL);
-    struct tm *date = localtime(&now);
+    struct tm* date = localtime(&now);
 
     int tz = date->tm_gmtoff / 3600;
     double jd = calc_julian_days(date, tz);
     double delta = calc_sun_declination(jd);
     double et = calc_equation_of_time(jd);
-    double tt = calc_transit_time(args->longitude, et, tz);
+    double tt = calc_transit_time(longitude(args), et, tz);
     calc_list sa = calc_sun_altitudes(delta, args);
-    calc_list ha = calc_hour_angles(delta, args->latitude, &sa);
-    pt_list pt = calc_pt_list(tt, &ha, args->descend_correction);
-    return pt;
+    calc_list ha = calc_hour_angles(delta, latitude(args), &sa);
+    return calc_pt_list(tt, &ha, descend_correction(args));
 }
 
 pt_time* pt_next_prayer(pt_list* pt_list)
