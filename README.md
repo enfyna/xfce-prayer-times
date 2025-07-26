@@ -25,7 +25,7 @@
 
 2. Build the project.
 > [!NOTE]
-> If you have missing dependencies try to install them.
+> If you have missing dependencies and cant find them open an issue.
 
         make
 
